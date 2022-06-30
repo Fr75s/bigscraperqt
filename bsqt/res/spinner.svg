@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   sodipodi:docname="spinner.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="false"
+     units="px"
+     width="1000px"
+     scale-x="1"
+     inkscape:zoom="0.90583671"
+     inkscape:cx="-16.559276"
+     inkscape:cy="113.70703"
+     inkscape:window-width="1920"
+     inkscape:window-height="1080"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     inkscape:showpageshadow="0"
+     inkscape:deskcolor="#505050" />
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="powerclip"
+       id="path-effect1742"
+       is_visible="true"
+       lpeversion="1"
+       inverse="true"
+       flatten="false"
+       hide_clip="false"
+       message="Use fill-rule evenodd on &lt;b&gt;fill and stroke&lt;/b&gt; dialog if no flatten result after convert clip to paths." />
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath1734">
+      <g
+         id="g1740"
+         style="display:none">
+        <rect
+           style="fill:#ff0000;fill-opacity:0.298376;stroke:none;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect1736"
+           width="128"
+           height="128"
+           x="0"
+           y="128"
+           d="M 0,128 H 128 V 256 H 0 Z" />
+        <rect
+           style="fill:#ff0000;fill-opacity:0.298376;stroke:none;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect1738"
+           width="128"
+           height="128"
+           x="128"
+           y="0"
+           d="M 128,0 H 256 V 128 H 128 Z" />
+      </g>
+      <path
+         id="lpe_path-effect1742"
+         class="powerclip"
+         d="M 19,19 H 237 V 237 H 19 Z M 0,128 V 256 H 128 V 128 Z M 128,0 V 128 H 256 V 0 Z" />
+    </clipPath>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:markers fill stroke"
+       id="path1514"
+       clip-path="url(#clipPath1734)"
+       inkscape:path-effect="#path-effect1742"
+       sodipodi:type="arc"
+       sodipodi:cx="128"
+       sodipodi:cy="128"
+       sodipodi:rx="96"
+       sodipodi:ry="96"
+       d="m 224,128 a 96,96 0 0 1 -96,96 96,96 0 0 1 -96,-96 96,96 0 0 1 96,-96 96,96 0 0 1 96,96 z" />
+  </g>
+</svg>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="Width=device-width, initial-scale=1.0">
+    <title>bigscraper-qt - Features</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+  </head>
+  <body>
+
+    <div class="trihead tr" style="background-color: var(--background-sub);"></div>
+
+    <div id="drop-menu" class="drop-menu" onclick="document.getElementById('drop-menu').classList.toggle('drop-menu-down')">
+      <div id="menu-bar1"></div>
+      <div id="menu-bar2"></div>
+      <div id="menu-bar3"></div>
+
+      <img id="drop-menu-icon-1" class="menu-icon" src="../res/night-mode.png" onclick="toggleDarkMode('drop-menu-icon-1')"/>
+      <img id="drop-menu-icon-2" class="menu-icon" src="../res/github.png" onclick="visitLinkIfVisible('drop-menu-icon-2', 'https://www.example.com')"/>
+    </div>
+
+
+    <main height="100%">
+      <h1><span class="underline-fancy">Features</span></h1>
+
+      <h2 class="left split">Feature List</h2>
+
+      <h3 class="left splitlite">Simple GUI</h3>
+      <p>With bigscraper-qt, you get a simple to use graphical interface. While easy to use, it does provide the necessary features to scrape with full capabilities. <a href="#gallery">Check out some screenshots here.</a></p>
+
+      <h3 class="left splitmid">LaunchBox Scraping</h3>
+      <p>Bigscraper-qt allows you to scrape the <a href="https://gamesdb.launchbox-app.com/">LaunchBox Games Database,</a> a database of metadata for many systems. With LaunchBox, you can collect metadata not only for retro consoles, but for modern systems and PC games as well.</p>
+
+      <h3 class="left splitmid">Video By Default</h3>
+      <p>Bigscraper-qt downloads video by default, downloading video from the links LaunchBox provides. Please note that consistency in the videos LaunchBox provides is nonexistent, as videos range from short clips to longplays. As a result, video downloads are restricted to up to 5 minutes by default.</p>
+
+      <h3 class="left splitmid">Easily Export to Pegasus</h3>
+      <p>Using bigscraper-qt, you can easily export metadata to the format used by <a href="https://pegasus-frontend.org/">Pegasus Frontend.</a> Choosing to export to Pegasus is as simple as choosing the option; when exporting, all data is automatically organized.</p>
+
+      <h3 class="left splitmid">Simple Installation</h3>
+      <p>Bigscraper-qt is easy to install. Simply download the AppImage or Flatpak, and run it. AppImages and Flatpaks are supported on most common Linux distros.</p>
+
+
+      <h2 id="limitations" class="split">Limitations</h2>
+      <p>Be aware that bigscraper-qt does have a few limitations. It is good to be aware of them before installing.</p>
+
+      <h3 class="left splitmid">Large Storage Requirement</h3>
+      <p>Bigscraper-qt has a large storage requirement. By itself, the AppImage is ~160MB, and the flatpak is ~250MB. As well, bigscraper-qt will require more storage from downloading every image per game off of LaunchBox.</p>
+
+      <h3 class="left splitmid">Video Inconsistency</h3>
+      <p>Due to LaunchBox only providing 1 video link per game that has one, bigscraper-qt is required to use that link to get video. The videos from the link LaunchBox provides, however, can be hours long, which is why, by default, bigscraper-qt limits video length to 5 minutes, meaning that not all games will have videos. It is better to use another scraper that uses a different service for videos, such as <a href="https://github.com/muldjord/skyscraper">Skyscraper,</a> a tool that scrapes from several other sources.</p>
+
+      <h2 id="gallery" class="split">Screenshot <span class="underline-fancy">Gallery</span></h2>
+
+      <img class="gallery" src="../res/screenshot_1.png" onclick="window.location.href='../res/screenshot_1.png'"/>
+      <p class="cap">Welcome Screen (Native, Dark Mode)</p>
+
+      <img class="gallery" src="../res/screenshot_2.png" onclick="window.location.href='../res/screenshot_2.png'"/>
+      <p class="cap">Export Screen (Native, Light Mode)</p>
+
+      <img class="gallery" src="../res/screenshot_3.png" onclick="window.location.href='../res/screenshot_3.png'"/>
+      <p class="cap">Scrape Screen (Non-Native, Light Mode)</p>
+
+      <img class="gallery" src="../res/screenshot_4.png" onclick="window.location.href='../res/screenshot_4.png'"/>
+      <p class="cap">Options Screen (Non-Native, Dark Mode)</p>
+
+
+
+    </main>
+    <div id="footer" class="footer tr" style="background-color: var(--background-sub);"></div>
+
+    <script src="../page.js"></script>
+  </body>
+</html>

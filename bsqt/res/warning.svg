@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   sodipodi:docname="warning.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="false"
+     units="px"
+     width="1000px"
+     scale-x="1"
+     inkscape:zoom="0.70710678"
+     inkscape:cx="117.37973"
+     inkscape:cy="179.60512"
+     inkscape:window-width="1373"
+     inkscape:window-height="460"
+     inkscape:window-x="364"
+     inkscape:window-y="340"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     inkscape:showpageshadow="0"
+     inkscape:deskcolor="#505050" />
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="powerclip"
+       id="path-effect1321"
+       is_visible="true"
+       lpeversion="1"
+       inverse="true"
+       flatten="false"
+       hide_clip="false"
+       message="Use fill-rule evenodd on &lt;b&gt;fill and stroke&lt;/b&gt; dialog if no flatten result after convert clip to paths." />
+    <inkscape:path-effect
+       effect="powerclip"
+       id="path-effect1306"
+       is_visible="true"
+       lpeversion="1"
+       inverse="true"
+       flatten="false"
+       hide_clip="false"
+       message="Use fill-rule evenodd on &lt;b&gt;fill and stroke&lt;/b&gt; dialog if no flatten result after convert clip to paths." />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path807"
+       clip-path="none"
+       style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:6.60548;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:markers fill stroke"
+       inkscape:transform-center-x="0.97635475"
+       inkscape:transform-center-y="-92.939877"
+       d="m 165.15979,142.66937 -50.17432,86.14358 99.68988,0.38067 z m -6.99566,13.229 h 13.29199 v 52.5217 h -13.29199 z m 6.646,58.42495 a 6.6459924,6.5652131 0 0 1 6.64599,6.56521 6.6459924,6.5652131 0 0 1 -6.64599,6.56521 6.6459924,6.5652131 0 0 1 -6.646,-6.56521 6.6459924,6.5652131 0 0 1 6.646,-6.56521 z"
+       transform="matrix(2.4074659,0,0,2.4370877,-268.77476,-325.13136)" />
+  </g>
+</svg>

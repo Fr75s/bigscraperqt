@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="Width=device-width, initial-scale=1.0">
+    <title>bigscraper-qt - Home</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+  </head>
+  <body>
+
+    <div class="trihead tr" style="background-color: var(--background-sub);"></div>
+
+    <!--
+    <div id="blob1" class="blob tr" style="width: 600px; aspect-ratio: 1 / 1; margin-left: calc(50% - 420px); top: 30%;"></div>
+
+    <div id="blob2" class="blob tr" style="width: 400px; aspect-ratio: 1 / 1; margin-left: calc(50% - 000px); top: 70%;"></div>
+    -->
+
+    <div id="drop-menu" class="drop-menu" onclick="document.getElementById('drop-menu').classList.toggle('drop-menu-down')">
+      <div id="menu-bar1"></div>
+      <div id="menu-bar2"></div>
+      <div id="menu-bar3"></div>
+
+      <img id="drop-menu-icon-1" class="menu-icon" src="res/night-mode.png" onclick="toggleDarkMode('drop-menu-icon-1')"/>
+      <img id="drop-menu-icon-2" class="menu-icon" src="res/github.png" onclick="visitLinkIfVisible('drop-menu-icon-2', 'https://www.example.com')"/>
+    </div>
+
+    <main height="100%">
+      <h1><span class="light">bigscraper</span><span class="underline-fancy">qt</span></h1>
+      <h3>Scrape Games with LaunchBox</h3>
+
+      <h3 class="left split"><span class="underline-fancy">LaunchBox</span>, now on Linux</h3>
+      <p class="left">Bigscraper-qt is a new tool available for Linux that enables you to scrape game metadata with <a href="https://gamesdb.launchbox-app.com/">the LaunchBox Games Database.</a> With it, you are able to gather metadata from the vast library of resources LaunchBox has to offer. From old classics to modern games, you can get metadata with this tool.</p>
+
+      <h3 class="right split">Remade Twice for the <span class="underline-fancy">Best Possible</span></h3>
+      <p class="right">Bigscraper-qt was remade twice to provide you the best experience possible. Going from a python package to electron app to a Python/Qt app, each redo has made this tool easier and lighter (well, maybe not from python to electron.) Now, in this form, bigscraper-qt has a somewhat native interface.</p>
+
+      <h3 class="left split">Simplicity is Key</h3>
+      <p class="left">Bigscraper-qt is a simple, easy to use tool, from installation to exporting. With availability both as a flatpak and AppImage, bigscraper-qt is stupid easy to install. <a href="guide/index.html">And with the guide,</a> you can scrape without any worry or hassle.</p>
+
+      <h3 class="right split">Linux + Pegasus Frontend</h3>
+      <p class="right">Bigscraper-qt was made to be able to easily scrape from LaunchBox on unsupported platforms. It focuses on <a href="https://pegasus-frontend.org/">Pegasus Frontend,</a> a highly customizable tool that provides <a href="https://pegasus-frontend.org/tools/themes/">some incredible themes.</a> Bigscraper-qt makes the hardest part of getting started with Pegasus, that is, getting metadata, easy.</p>
+
+      <h3 class="split">Get started <span class="underline-fancy">Now</span></h3>
+
+      <a href="features/index.html" class="button underline-fancy-helper center splitlite">See the <span class="underline-fancy-anim">Full Feature List</span></a>
+      <br>
+      <a href="install/index.html" class="button underline-fancy-helper center splitlite"><span class="underline-fancy-anim">Install</span> the Program</a>
+      <br>
+      <a href="guide/index.html" class="button underline-fancy-helper center splitlite">Read the <span class="underline-fancy-anim">Guide</span></a>
+
+
+
+    </main>
+    <div id="footer" class="footer tr" style="background-color: var(--background-sub);"></div>
+
+    <script src="page.js"></script>
+  </body>
+</html>

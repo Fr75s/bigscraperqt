@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=bigscraper-qt
+Exec=io.github.fr75s.bigscraperqt
+Type=Application
+Terminal=false
+Icon=io.github.fr75s.bigscraperqt
+Categories=Utility;

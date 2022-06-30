@@ -1,0 +1,27 @@
+@font-face {
+	font-family: "Outfit";
+	src: url("Outfit-Variable.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url("JetBrainsMono-Variable.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "Jost";
+	font-weight: 200;
+	src: url("Jost-Thin.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "Jost";
+	font-weight: 300;
+	src: url("Jost-Light.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "Jost";
+	font-weight: 700;
+	src: url("Jost-Bold.ttf") format("truetype");
+}

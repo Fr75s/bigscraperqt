@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="Width=device-width, initial-scale=1.0">
+    <title>bigscraper-qt - Guide</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+  </head>
+  <body>
+
+    <div class="trihead tr" style="background-color: var(--background-sub);"></div>
+
+    <div id="drop-menu" class="drop-menu" onclick="document.getElementById('drop-menu').classList.toggle('drop-menu-down')">
+      <div id="menu-bar1"></div>
+      <div id="menu-bar2"></div>
+      <div id="menu-bar3"></div>
+
+      <img id="drop-menu-icon-1" class="menu-icon" src="../res/night-mode.png" onclick="toggleDarkMode('drop-menu-icon-1')"/>
+      <img id="drop-menu-icon-2" class="menu-icon" src="../res/github.png" onclick="visitLinkIfVisible('drop-menu-icon-2', 'https://www.example.com')"/>
+    </div>
+
+
+    <main height="100%">
+      <h1><span class="underline-fancy">Guide</span></h1>
+
+      <h2 class="left split">Table Of Contents</h2>
+
+      <ul>
+        <li><a href="#starter">Starter Example</a></li>
+        <li><a href="#commands">Launch Commands</a>
+          <ul>
+            <li><a href="#commands-retroarch">Retroarch</a></li>
+            <li><a href="#commands-common">Other Common Emulators</a></li>
+            <li><a href="#commands-difinstall">Different Installations</a></li>
+            <li><a href="#commands-custom">Custom Commands</a></li>
+          </ul>
+        </li>
+        <br>
+        <li><a href="#scraping">Scraping</a></li>
+        <li><a href="#exporting">Exporting</a></li>
+        <br>
+        <li><a href="#versions">Version Differences</a></li>
+        <li><a href="#other">Other Things of Note</a></li>
+      </ul>
+
+
+      <h2 id="starter" class="split">Starter <span class="underline-fancy">Example</span></h2>
+      <p>In this example tutorial, we will go through the general process for scraping. For this example, we will gather metadata and images for a bunch of Switch games.</p>
+
+
+      <h3 class="left splitmid">Organization</h3>
+      <p>Before we get started with scraping, we will organize the games in our folder. Make sure all your Switch games are in a single, empty folder, like so.</p>
+
+
+      <pre class="tr"><code>
+      folder
+      |
+      | Game1.xci
+      | Game2.nsp
+      | Game3.xci
+      | ...
+      </code></pre>
+
+
+      <h3 class="left splitmid">Scraping</h3>
+      <p>Now, we can get started. Open up bigscraper-qt, assuming you have installed it <a href="../install/index.html">(see here if you haven't)</a>. Now, navigate to the "Scrape" tab on the top of the application, like below.</p>
+
+      <img class="gallery" style="margin: 2rem auto 3rem auto;" src="guide_1.png"/>
+
+      <p>Now, you must choose the proper options. There are only 2 options, the Game Folder and the System. Bigscraper-qt can only scrape 1 folder and system at a time; it works best if all games for each system are in 1 folder (which they typically are). <br>Set the game folder by clicking the button and choosing the folder with your games (on the flatpak version, you will need to pick any file in the desired folder). Then, click the systems button and scroll down until you reach the entry that says "Nintendo Switch". Choose this option. Bigscraper-qt should now look like below.</p>
+
+      <img class="gallery" style="margin: 2rem auto 3rem auto;" src="guide_2.png"/>
+
+      <p>You are now ready to scrape. Simply press the begin button, and wait until the process is complete. Gathering metadata takes a while, so you will need to wait. Once it's done, you will be booted back to the Scrape screen.</p>
+
+      <h3 class="left splitmid">Exporting</h3>
+      <p>We are almost done. Now, all we need to do is export. Go to the export tab, as shown below.</p>
+
+      <img class="gallery" style="margin: 2rem auto 3rem auto;" src="guide_3.png"/>
+
+      <p>Once in the export tab, we will set the 2 options. Simply set the export folder the same way as you did when scraping, choosing the folder with your games. Then, set the system to Nintendo Switch once again. It should look like below:</p>
+
+      <img class="gallery" style="margin: 2rem auto 3rem auto;" src="guide_4.png"/>
+
+      <p>Once your page looks like the above, hit "Begin" to export data, which occurs very quickly. Congratulations! You have successfully gathered metadata for your Switch games. Your games folder should now look like below:</p>
+
+
+      <pre class="tr"><code>
+      folder
+      |
+      | media
+      | |
+      | | ...
+      |
+      | metadata.pegasus.txt
+      | Game1.xci
+      | Game2.nsp
+      | Game3.xci
+      | ...
+      </code></pre>
+
+
+      <p>After you scrape, one more step needs to be done: Adding a launch command so that when chosen in the frontend, the game launches with your emulator of choice. Open up the generated metadata.pegasus.txt; the first few lines should look like this:</p>
+
+
+      <pre class="tr"><code>
+      collection: Nintendo Switch
+      shortname: switch
+      command: [INSERT COMMAND HERE]
+      </code></pre>
+
+
+      <p>You will need to replace the line that says <code>command: [INSERT COMMAND HERE]</code>. Your emulator installation may vary, but if you're using the flatpak version of yuzu, replace the line so that the file looks like this:</p>
+
+
+      <pre class="tr"><code>
+      collection: Nintendo Switch
+      shortname: switch
+      command: flatpak run org.yuzu_emu.yuzu "{file.path}"
+      </code></pre>
+
+
+      <p>You are now finally finished! Simply add the metadata.pegasus.txt file as one of the game sources in Pegasus, and your games should appear with metadata and all.</p>
+
+
+
+      <h2 id="commands" class="split">Launch <span class="underline-fancy">Commands</span></h2>
+      <p>Bigscraper-qt does not provide launch commands by default: You will need to add them yourself. This section will provide some general launch commands for common emulators, as well as guide you on how to find and create your own launch commands for more obscure emulators.</p>
+
+
+      <h3 id="commands-retroarch" class="left splitmid">Retroarch</h3>
+      <p>For most desktop users who emulate retro games, Retroarch is the go-to choice as an emulator. Retroarch is perfectly usable as an emulator for pegasus, though it does need some tweaking.</p>
+
+      <p>For Retroarch, you should first navigate to the folder containing your cores. This is one of the below, depending on your install:</p>
+
+
+      <pre class="tr"><code>
+      Standard
+      ~/.config/retroarch/cores
+
+      Flatpak
+      ~/.var/app/org.libretro.RetroArch/config/retroarch/cores
+      </code></pre>
+
+
+      <p>Navigate to the cores folder, and look for the file with your core. It should have the name of the core and the extension <code>.so</code>. Make note of the full path to this core, including both the cores folder and the file (e.g. ~/.config/retroarch/cores/mgba_libretro.so).</p>
+
+      <p>Now, you can form your launch command. Based on your install of Retroarch, it will be one of the below. Replace <code>[PATH_TO_CORE]</code> with the full path to the core you noted. If you're using the Retroarch AppImage, note the path to the AppImage and replace <code>[FULL_PATH_TO_APPIMAGE]</code> with that path.</p>
+
+
+      <pre class="tr"><code>
+      Standard
+      retroarch -f -L [PATH_TO_CORE] "{file.path}"
+
+      Flatpak
+      flatpak run org.libretro.Retroarch -f -L [PATH_TO_CORE] "{file.path}"
+
+      AppImage
+      [FULL_PATH_TO_APPIMAGE] -f -L [PATH_TO_CORE] "{file.path}"
+      </code></pre>
+
+
+      <p>That is all that is needed to create a launch command for retroarch.</p>
+
+
+      <h3 id="commands-common" class="left splitmid">Other Common Emulators</h3>
+      <p>Several common emulators are distinct in how they're launched from the terminal. Here are some observations as to how to get them to work.</p>
+
+      <p><span class="bold">Dolphin</span></p>
+      <p>A common external emulator is dolphin, though it requires a few flags to run properly. Here is the launch commands for dolphin.</p>
+
+
+      <pre class="tr"><code>
+      System
+      dolphin-emu -b -e "{file.path}"
+
+      Flatpak
+      flatpak run org.DolphinEmu.dolphin-emu -b -e "{file.path}"
+      </code></pre>
+
+
+      <p>Note the -b and -e flags. The -b flag removes the game selection window, while -e loads the file.</p>
+
+      <p>Please note that on the KDE Plasma desktop, "dolphin" is the name of the file manager. Don't confuse this with "dolphin-emu," the name of the emulator.</p>
+
+      <p><span class="bold">Yuzu &amp; Ryujinx</span></p>
+      <p>For Nintendo Switch Emulation, Yuzu and Ryujinx are your choices.</p>
+
+      <p>Launch Commands for Yuzu:</p>
+
+      <pre class="tr"><code>
+      System
+      yuzu "{file.path}"
+
+      Flatpak
+      flatpak run org.yuzu_emu.yuzu "{file.path}"
+
+      AppImage
+      [PATH_TO_YUZU_APPIMAGE] "{file.path}"
+      </code></pre>
+
+      <p>Launch Commands for Ryujinx</p>
+
+      <pre class="tr"><code>
+      System
+      ryujinx "{file.path}"
+
+      Flatpak
+      flatpak run org.ryujinx.Ryujinx "{file.path}"
+
+      AppImage
+      [PATH_TO_RYUJINX_APPIMAGE] "{file.path}"
+      </code></pre>
+
+      <p><span class="bold">PPSSPP</span></p>
+      <p>PPSSPP is the primary emulator to run PSP games.</p>
+
+      <pre class="tr"><code>
+      System
+      PPSSPPSDL "{file.path}"
+      OR
+      PPSSPPQt "{file.path}"
+
+      Flatpak
+      flatpak run org.ppsspp.PPSSPP "{file.path}"
+      </code></pre>
+
+      <p>The 2 launch commands for the System install specify whether you want to use the SDL version of PPSSPP or the Qt Version of PPSSPP. Both have some differences, so it might be best to check out each before choosing a command.</p>
+
+
+      <h3 id="commands-difinstall" class="left splitmid">Different Emulator Installations</h3>
+      <p>Before listing launch commands for more common emulators, it is best to learn about differences in installations.</p>
+
+      <p>Linux apps typically have multiple ways they can be installed, meaning that there is no one universal way to launch installed applications. The most common ways apps are installed are typically through the distro's repositories or through Flatpak, though AppImages and snaps exist as well. This is why multiple launch commands can exist for 1 application: if installed differently, the command to run the application is different.</p>
+
+      <p>Typically, launch commands for different installations go like this:</p>
+
+
+      <pre class="tr"><code>
+      System
+      [APP_NAME] "{file.path}"
+
+      Flatpak
+      flatpak run [FLATPAK_APP_ID] "{file.path}"
+
+      AppImage (portable executable)
+      [EXECUTABLE_PATH] "{file.path}"
+      </code></pre>
+
+
+      <p><span class="bold">System</span> installations are your installations from your distro's repository, typically installed through its package manager (e.g. apt, pacman...). For these, the launch command is mainly the name of the application (<span class="bold">[APP_NAME]</span>), though it may differ depending on the application and the distro.</p>
+
+      <p><span class="bold">Flatpak</span> installations are your standard sandboxed application, common in most major distros (except Ubuntu). These are typically installed through the flatpak cli tool or through a graphical store (e.g. Discover), but you can find most readily available flatpaks in <a href="https://flathub.org/home">Flathub.</a> The <span class="bold">[FLATPAK_APP_ID]</span> is the application ID used by flatpak for the application; you can easily find it by finding the app on flathub and scrolling to the command line instructions, where it is presented.</p>
+
+      <p><span class="bold">AppImage</span> installations (or portable executables) are singular files which can be executed directly to run the application. For these, you will need to know the full path (<span class="bold">[EXECUTABLE_PATH]</span>) to the AppImage or executable, which would be something like <code>/home/[USER]/.../Application-1.0.0-x86_64.AppImage</code>.</p>
+
+
+      <h3 id="commands-custom" class="left splitmid">Custom Launch Commands</h3>
+      <p>I tried to include many common emulators to make it easy to find the launch commands for them. However, there will be some emulators you may have that are not included here. To go about finding out how to get launch commands for these emulators, you have several options.</p>
+
+      <p><span class="bold">Option 1: Use the Terminal</span></p>
+      <p>Finding flags in the terminal is the easiest option, and can be done even offline.</p>
+
+      <p>If the desired emulator is installed through the distro's package manager, then attempt to find the proper command to launch the emulator. You can typically check by hitting tab, which will autocomplete a partial name. If the desired emulator is a flatpak, simply find the app id <a href="https://flathub.org/home">on Flathub</a>; the base command will be flatpak run [APP_ID].</p>
+
+      <p>Once you have your base command, start by putting the path to a game for the emulator. If it launches as intended, you have your command: simply replace the game path with <code>"{file.path}"</code>. If it doesn't, then you may need some extra flags. To find them, try passing -h or --help to the emulator instead of the game path, and read the help output if it shows. This output should give the necessary information about necessary flags to launch your game properly.</p>
+
+      <p><span class="bold">Option 2: Search Online</span></p>
+      <p>Doing a simple search is another easy way to find a launch command for your emulator. Search for the emulator, and the terms "launch command", "command line" or other similar terms should hopefully yield a usable command.</p>
+
+      <p>Note that you can easily convert a Launch command intended for Windows to a Linux launch command. Simply replace the path to the executable with the name of the base command ([app-name] or flatpak run [flatpak-app-id]).</p>
+
+
+
+      <h2 id="scraping" class="split">Scraping</h2>
+      <p>Scraping is the way in which data is gathered for bigscraper-qt.</p>
+
+
+
+      <h3 class="left splitmid">Scraping 1 Game</h3>
+      <p>In bigscraper-qt, you can scrape 1 game at a time to test scraping capabilities. This is not recommended, however, as you can scrape 1 folder at a time instead.</p>
+
+      <p>When scraping 1 game, you have 2 options: the game file and the system. The game file is the game to scrape; the system is the system that game is for.</p>
+
+
+      <h3 class="left splitmid">Scraping Folders</h3>
+      <p>Scraping folders is the main way to scrape in bigscraper-qt, as you can collect metadata for all games in that folder at once.</p>
+
+      <p>When scraping a folder, you have 2 options: the folder and the system. The folder is the folder containing the games you wish to scrape, and the system is the system the games in the folder are for.</p>
+
+      <p>Please note that when scraping a folder, all games need to be for the same system. As well, scraping all folders with games at once is impossible with bigscraper-qt.</p>
+
+
+      <h3 class="left splitmid">The Scraping Process</h3>
+      <p>Here, I will describe how exactly games are scraped, so that you can know how bigscraper-qt finds games from LaunchBox.</p>
+
+      <p>First, bigscraper-qt notes the game file selected and system. It trims the extensions of the game name, formatting it to a common format to remove ambiguity. Then, based on the system name, the ID of the system used by the LaunchBox database is acquired from a hand-written object.</p>
+
+      <p>Once we have the system ID for the correct system, we start looking through the pages in order. Each page is scraped using an XPath query, which yields all the names of the games on that page. If a match is not found for any chosen game, then we simply move on to the next page, and repeat the process until a game is found or the last page is reached. If a game is found, then we get the link to its database page using another XPath query. If only 1 game is being scraped, we don't scrape any more system pages, but if multiple are being scraped, we still continue.</p>
+
+      <p>With the link to the game's details page, we can now gather the metadata itself. We start by gathering the text metadata: Using more XPath queries, we gather all the information from the details page. Then, we trim the details link to find the game's database ID, which we use to get the images page for the game. Once we have the images page, we simply use more XPath queries to get the direct image links, which we use to download every image off the page.</p>
+
+      <p>The process of scraping games takes a while <span class="bold">because it needs to fetch many pages.</span> This means that scraping speed is dependent on your internet speed.</p>
+
+      <p>After games are scraped, the text metadata, as well as the game's file path and a list of image names is sent to a .json file in bigscraper-qt's data folder (~/.local/share/bigscraper-qt normally, ~/.var/app/io.github.fr75s.bigscraperqt/data/bigscraperqt in flatpak). The images are stored in an adjacent folder.</p>
+
+
+
+      <h2 id="exporting" class="split">Exporting</h2>
+      <p>Exporting is how data is compiled into a format usable by emulator frontends.</p>
+
+      <p>When exporting, you have 2 options. One is the folder to export to, and one is the system whose game data will be exported to this folder. Exporting data will create the metadata file for the system, as well as a media folder containing the media files for games.</p>
+
+
+
+      <h2 id="versions" class="split">Version <span class="underline-fancy">Differences</span></h2>
+      <p>Several version differences are present between the flatpak &amp; AppImage versions of bigscraper-qt. A few are listed below.</p>
+
+      <h3 class="left splitmid">Interfaces</h3>
+      <p>The interface of the flatpak is more native than the interface of the AppImage. Due to AppImages being unable to get the system theme for Qt, a custom theme is built for the AppImage build of bigscraper-qt. While I tried to hide as much as possible, the file and folder dialogs still appear as usual, in their non-native appearance.</p>
+
+      <h3 class="left splitmid">Flatpak Folder Dialog</h3>
+      <p>In the flatpak build, a strange bug occurs when using a standard folder picker, causing the incorrect path to be passed. As a result, bigscraper-qt instead asks you to pick a file. This file can be any file in the desired folder, and will automatically chose its parent folder when selected.</p>
+
+
+      <h2 id="other" class="split">Other <span class="underline-fancy">Things of Note</span></h2>
+
+      <p>Currently, bigscraper-qt is not perfect, and has many parts of it that can be fixed. If you find something that can be fixed, please, let me know.</p>
+
+      <p>As of bigscraper-qt 1.0.0, there is a screen stuttering issue on the flatpak version of bigscraper-qt, where half of the background <span class="bold">flickers</span>. Please be aware of this when installing.</p>
+
+
+
+
+    </main>
+    <div id="footer" class="footer tr" style="background-color: var(--background-sub);"></div>
+
+    <script src="../page.js"></script>
+  </body>
+</html>
