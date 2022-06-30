@@ -1,3 +1,0 @@
-include bsqt/res/*
-include bsqt/res/font_outfit/*
-recursive-include bsqt *.qml
