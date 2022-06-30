@@ -10,23 +10,19 @@ If you want more information, head to the website. This README will mainly serve
 
 To run the source code, first download the source code.
 
-	git clone https://github.com/Fr75s/bigscraperqt.git
-	cd bigscraperqt
+	$ git clone https://github.com/Fr75s/bigscraperqt.git
+	$ cd bigscraperqt
 
 After you download the source code, simply run the following. You may append a `-n` flag to test the flatpak version behavior.
 
-	python3 -m bsqt
+	$ python3 -m bsqt
 
 ## Building from Source
 
 To build from source, first clone the repository.
 
-	git clone https://github.com/Fr75s/bigscraperqt.git
-	cd bigscraperqt
-
-Once you clone the repository, switch to the build branch of choice. You can switch to either the `build-appimage` or `build-flatpak` branch for each build respectively.
-
-	git checkout [build branch]
+	$ git clone https://github.com/Fr75s/bigscraperqt.git
+	$ cd bigscraperqt
 
 Then, simply run one of the following, depending on which version to build:
 
