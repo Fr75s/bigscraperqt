@@ -1,0 +1,56 @@
+{
+    "app-id": "io.github.fr75s.bigscraperqt",
+    "runtime": "org.kde.Platform",
+    "runtime-version": "5.15-21.08",
+    "sdk": "org.kde.Sdk",
+    "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.llvm13"
+    ],
+    "base": "com.riverbankcomputing.PyQt.BaseApp",
+    "base-version": "5.15-21.08",
+    "command": "io.github.fr75s.bigscraperqt",
+    "build-options": {
+        "env": {
+            "BASEAPP_REMOVE_WEBENGINE": "1"
+        }
+    },
+    "finish-args": [
+        "--share=ipc",
+        "--share=network",
+        "--socket=x11",
+        "--socket=wayland",
+        "--filesystem=home",
+        "--device=dri"
+    ],
+    "modules": [
+        "python3-requirements.json",
+        {
+            "name": "bigscraperqt",
+            "buildsystem": "simple",
+            "build-commands": [
+                "mkdir -p /app/share",
+                "cp -r share /app/",
+                "pip3 install --verbose --no-index --prefix=${FLATPAK_DEST} --no-build-isolation --no-deps ."
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "."
+                }
+            ]
+        },
+        {
+            "name": "bigscraperqt-desktop",
+            "buildsystem": "simple",
+            "build-commands": [
+                "install -D ./bsqt.sh /app/bin/io.github.fr75s.bigscraperqt"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "path": "bsqt.sh"
+                }
+            ]
+        }
+    ]
+}
