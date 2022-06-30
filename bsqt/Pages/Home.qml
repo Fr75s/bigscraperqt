@@ -25,7 +25,7 @@ Item {
 		anchors.topMargin: 24
 
 		color: colors.text
-		text: "Welcome to bigscraper-qt. To get started, <a href=\"https://example.com\"> you may want to refer to the guide,</a> which will help you learn how to scrape games with this tool. Otherwise, choose an option above or below to scrape or export data."
+		text: "Welcome to bigscraper-qt. To get started, <a href=\"https://fr75s.github.io/bigscraperqt/guide/index.html\"> you may want to refer to the guide,</a> which will help you learn how to scrape games with this tool. Otherwise, choose an option above or below to scrape or export data."
 		textFormat: Text.RichText
 		wrapMode: Text.WordWrap
 		font.family: outfit.name
