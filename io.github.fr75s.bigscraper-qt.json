@@ -3,9 +3,6 @@
     "runtime": "org.kde.Platform",
     "runtime-version": "5.15-21.08",
     "sdk": "org.kde.Sdk",
-    "sdk-extensions": [
-        "org.freedesktop.Sdk.Extension.llvm13"
-    ],
     "base": "com.riverbankcomputing.PyQt.BaseApp",
     "base-version": "5.15-21.08",
     "command": "io.github.fr75s.bigscraperqt",
@@ -36,6 +33,18 @@
                 {
                     "type": "dir",
                     "path": "."
+                }
+            ],
+            "modules": [
+                {
+                    "name": "ffmpeg",
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://ffmpeg.org/releases/ffmpeg-5.0.tar.gz",
+                            "sha256": "7bf52bc242b5db8df67c62cb826df134d917dedcf6abf1289e15e4057bcc1750"
+                        }
+                    ]
                 }
             ]
         },

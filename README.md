@@ -4,7 +4,7 @@
 
 Bigscraper-qt is a tool you can use to scrape [the LaunchBox Games Database.](https://gamesdb.launchbox-app.com/) With a simple GUI, you can easily scrape metadata from a variety of systems.
 
-If you want more information, head to the website. This README will mainly serve as information regarding the development of bigscraper-qt.
+If you want more information, head to [the website](https://fr75s.github.io/bigscraperqt/). This README will mainly serve as information regarding the development of bigscraper-qt.
 
 ## Running from Source
 
@@ -38,7 +38,6 @@ A list of new planned features are below.
 - Flathub Release (flatpak availability)
 - "All" export system option
 - Export to Secondary frontend
-- More efficient folder scraping
 
 Some of these features were in previous iterations; I hope to add them to bigscraper-qt as well:
 

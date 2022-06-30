@@ -42,9 +42,16 @@ def trimext(text):
 
 	return text
 
+def video_len_test(info, *, incomplete):
+	video_duration = info.get("duration")
+	if video_duration and video_duration > VIDEO_LEN_LIMIT:
+		return "Sorry, too long"
+
+# Download Video
 def download_video(url, options):
 	with YoutubeDL(options) as video_downloader:
 		err = video_downloader.download(url)
+
 
 ## Define a few values for the scripts
 

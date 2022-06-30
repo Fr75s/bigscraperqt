@@ -70,13 +70,15 @@ class ScrapeTask(QObject):
 		current_page = 1
 		games_found = 0
 
+		page_after_all_alphabetically = False
+
 		# Download 1st Page
 		self.out.emit("Getting Page " + str(current_page))
 		page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + cv_id[system] + "|" + str(current_page))
 		pagetree = html.fromstring(page.content)
 		page_games = pagetree.xpath('//a[@class="list-item"]')
 
-		while (len(page_games) > 0):
+		while (len(page_games) > 0) and not(page_after_all_alphabetically):
 
 			# Scan through each text item
 			game_titles = pagetree.xpath("//div[@class='col-sm-10']/h3[1]/text()")
@@ -86,94 +88,98 @@ class ScrapeTask(QObject):
 			for t in game_titles:
 				game_titles_format.append(form(t))
 
-			# Check for games that match any in the games list
-			for g in game_names:
-				if (g in game_titles_format):
-					games_found += 1
-					self.out.emit("Getting metadata for " + g + " (" + str(games_found) + " of " + str(len(game_names)) + ")")
+			if (sorted(game_titles_format)[0] > sorted(game_names)[-1]):
+				page_after_all_alphabetically = True
 
-					game_index = game_titles_format.index(g)
-					details_link = "https://gamesdb.launchbox-app.com" + pagetree.xpath('//a[@class="list-item"]/@href')[game_index]
-					database_id = details_link.rsplit('/', 1)[-1]
-					images_link = "https://gamesdb.launchbox-app.com/games/images/" + database_id
+			if not(page_after_all_alphabetically):
+				# Check for games that match any in the games list
+				for g in game_names:
+					if (g in game_titles_format):
+						games_found += 1
+						self.out.emit("Getting metadata for " + g + " (" + str(games_found) + " of " + str(len(game_names)) + ")")
 
-					# Get details page
-					details_page = requests.get(details_link)
-					details = html.fromstring(details_page.content)
+						game_index = game_titles_format.index(g)
+						details_link = "https://gamesdb.launchbox-app.com" + pagetree.xpath('//a[@class="list-item"]/@href')[game_index]
+						database_id = details_link.rsplit('/', 1)[-1]
+						images_link = "https://gamesdb.launchbox-app.com/games/images/" + database_id
 
-					# Initialize metadata object
-					meta = {}
-					meta["File"] = game_files[game_names.index(g)]
+						# Get details page
+						details_page = requests.get(details_link)
+						details = html.fromstring(details_page.content)
 
-					# Get details from page
-					info = details.xpath('//td[@class="row-header"]/text()')
-					for i in info:
-						# Standard
-						if i in ("Name", "Platform", "Release Date", "Game Type", "ESRB", "Max Players", "Cooperative"):
-							meta[i] = details.xpath('//td[@class="row-header" and text()="' + i + '"]/../td[2]/span[1]/text()')
-						# Links
-						if i in ("Developers", "Publishers", "Genres", "Wikipedia", "Video Link"):
-							meta[i] = details.xpath('//td[@class="row-header" and text()="' + i + '"]/../td[2]/span[1]/a/text()')
-						# Overview Text Block
-						if i in ("Overview"):
-							meta[i] = details.xpath('//div[@class="view"]/text()')
-						# Rating
-						if i in ("Rating"):
-							meta[i] = details.xpath('//span[@id="communityRating"]/text()')
+						# Initialize metadata object
+						meta = {}
+						meta["File"] = game_files[game_names.index(g)]
 
-					## Image Downloads
-					# Get Images page
-					self.out.emit("Getting Images Page for " + g)
-					images_page = requests.get(images_link)
-					images = html.fromstring(images_page.content)
+						# Get details from page
+						info = details.xpath('//td[@class="row-header"]/text()')
+						for i in info:
+							# Standard
+							if i in ("Name", "Platform", "Release Date", "Game Type", "ESRB", "Max Players", "Cooperative"):
+								meta[i] = details.xpath('//td[@class="row-header" and text()="' + i + '"]/../td[2]/span[1]/text()')
+							# Links
+							if i in ("Developers", "Publishers", "Genres", "Wikipedia", "Video Link"):
+								meta[i] = details.xpath('//td[@class="row-header" and text()="' + i + '"]/../td[2]/span[1]/a/text()')
+							# Overview Text Block
+							if i in ("Overview"):
+								meta[i] = details.xpath('//div[@class="view"]/text()')
+							# Rating
+							if i in ("Rating"):
+								meta[i] = details.xpath('//span[@id="communityRating"]/text()')
 
-					# Get links and corresponding titles
-					image_links = images.xpath('//a[contains(@href, "https://images.launchbox-app.com")]/@href')
-					image_titles = images.xpath('//a[contains(@href, "https://images.launchbox-app.com")]/@data-title')
+						## Image Downloads
+						# Get Images page
+						self.out.emit("Getting Images Page for " + meta["Name"][0])
+						images_page = requests.get(images_link)
+						images = html.fromstring(images_page.content)
 
-					# Download each image
-					index = 0
-					for link in image_links:
-						# Get link
-						image_title = image_titles[index]
+						# Get links and corresponding titles
+						image_links = images.xpath('//a[contains(@href, "https://images.launchbox-app.com")]/@href')
+						image_titles = images.xpath('//a[contains(@href, "https://images.launchbox-app.com")]/@data-title')
 
-						# Download the image
-						self.out.emit("Downloading Image " + str(index + 1) + " of " + str(len(image_links)) + " for " + g)
-						image = requests.get(link)
+						# Download each image
+						index = 0
+						for link in image_links:
+							# Get link
+							image_title = image_titles[index]
 
-						# Write to file
-						open(os.path.join(paths["MEDIA"], system, g) + "/" + image_title + ".png", "wb").write(image.content)
+							# Download the image
+							self.out.emit("Downloading Image " + str(index + 1) + " of " + str(len(image_links)) + " for " + meta["Name"][0])
+							image = requests.get(link)
 
-						index += 1
+							# Write to file
+							open(os.path.join(paths["MEDIA"], system, g) + "/" + image_title + ".png", "wb").write(image.content)
 
-					# List image titles in metadata
-					meta["Images"] = (image_titles if len(image_titles) > 0 else ["NULL"])
+							index += 1
+
+						# List image titles in metadata
+						meta["Images"] = (image_titles if len(image_titles) > 0 else ["NULL"])
 
 
 
-					## Video Downloads
-					if options["video"]:
-						# Option is set: Download video
+						## Video Downloads
+						if options["video"] and meta["Video Link"]:
+							# Option is set: Download video
 
-						# Get video info
-						info = ydl.sanitize_info(ydl.extract_info(meta["Video Link"][0], download=False))
+							dl_options = {
+								"match_filter": video_len_test,
+								"outtmpl": os.path.join(paths["MEDIA"], system, g) + "/" + meta["Name"][0] + " - Video.%(ext)s"
+							}
 
-						# Only download video if less than 5 minutes or option is set
-						if (info["duration"] < VIDEO_LEN_LIMIT or options["videoOverLimit"]):
-							self.out.emit("Downloading Video for " + g)
-							download_video(meta["Video Link"][0], {"outtmpl": os.path.join(paths["MEDIA"], system, g) + "/" + meta["Name"][0] + " - Video.%(ext)s"})
+							self.out.emit("Attempting Video Download")
+							download_video(meta["Video Link"][0], dl_options)
 
-					# Write Metadata
-					meta_json = json.dumps(meta, indent = 4)
-					open(os.path.join(paths["METADATA"], system) + "/" + g + ".json", "w").write(meta_json)
-					self.out.emit("Collection Complete for " + g + " (" + str(games_found) + " of " + str(len(game_names)) + ")")
+						# Write Metadata
+						meta_json = json.dumps(meta, indent = 4)
+						open(os.path.join(paths["METADATA"], system) + "/" + g + ".json", "w").write(meta_json)
+						self.out.emit("Collection Complete for " + g + " (" + str(games_found) + " of " + str(len(game_names)) + ")")
 
-			current_page += 1
-			self.out.emit("Getting Page " + str(current_page))
+				current_page += 1
+				self.out.emit("Getting Page " + str(current_page))
 
-			page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + cv_id[system] + "|" + str(current_page))
-			pagetree = html.fromstring(page.content)
-			page_games = pagetree.xpath('//a[@class="list-item"]')
+				page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + cv_id[system] + "|" + str(current_page))
+				pagetree = html.fromstring(page.content)
+				page_games = pagetree.xpath('//a[@class="list-item"]')
 
 
 		self.out.emit("Process Complete: Found " + str(games_found) + " of " + str(len(game_names)) + " Games. Exiting...")

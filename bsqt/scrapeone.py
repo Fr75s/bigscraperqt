@@ -68,7 +68,7 @@ class ScrOneTask(QObject):
 				game_found = True
 				break
 			else:
-				currentPage += 1
+				current_page += 1
 
 				# Get next page
 				self.out.emit("Getting Page " + str(current_page))
@@ -140,16 +140,19 @@ class ScrOneTask(QObject):
 
 
 			## Video Downloads
-			if options["video"]:
+			if options["video"] and meta["Video Link"]:
 				# Option is set: Download video
 
 				# Get video info
-				info = ydl.sanitize_info(ydl.extract_info(meta["Video Link"][0], download=False))
+				# info = ydl.sanitize_info(ydl.extract_info(meta["Video Link"][0], download=False))
 
-				# Only download video if less than 5 minutes or option is set
-				if (info["duration"] < VIDEO_LEN_LIMIT or options["videoOverLimit"]):
-					self.out.emit("Downloading Video")
-					download_video(meta["Video Link"][0], {"outtmpl": os.path.join(paths["MEDIA"], system, game_match) + "/" + meta["Name"][0] + " - Video.%(ext)s"})
+				dl_options = {
+					"match_filter": video_len_test,
+					"outtmpl": os.path.join(paths["MEDIA"], system, game_match) + "/" + meta["Name"][0] + " - Video.%(ext)s"
+				}
+
+				self.out.emit("Attempting Video Download")
+				download_video(meta["Video Link"][0], dl_options)
 
 
 

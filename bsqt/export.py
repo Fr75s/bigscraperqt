@@ -55,7 +55,7 @@ class ExportTask(QObject):
 			output.append("command: [INSERT COMMAND HERE]")
 
 			# Go through each game's JSON file
-			for meta_file_raw in game_meta_files:
+			for meta_file_raw in sorted(game_meta_files):
 				meta_file = os.path.join(paths["METADATA"], system) + "/" + meta_file_raw
 				meta = json.load(open(meta_file))
 
@@ -69,11 +69,13 @@ class ExportTask(QObject):
 
 				# Get the rest of the text metadata, which may or may not exist.
 				if "Rating" in meta:
-					output.append("rating: " + meta["Rating"][0])
+					if len(meta["Rating"]) > 0:
+						output.append("rating: " + meta["Rating"][0])
 
 				if "Overview" in meta:
-					output.append("description: " + meta["Overview"][0])
-					output.append("summary: " + meta["Overview"][0])
+					if len(meta["Overview"]) > 0:
+						output.append("description: " + meta["Overview"][0])
+						output.append("summary: " + meta["Overview"][0])
 
 				# There may be multiple of the following, so iterate through each
 				if "Developers" in meta:
@@ -90,27 +92,29 @@ class ExportTask(QObject):
 
 				# One more normal metadatum
 				if "Max Players" in meta:
-					output.append("players: " + meta["Max Players"][0])
+					if len(meta["Max Players"]) > 0:
+						output.append("players: " + meta["Max Players"][0])
 
 				# Release Date Special Case
 				if "Release Date" in meta:
-					# Check if full release date or only year
-					if (len(meta["Release Date"][0]) > 4):
-						# Full Release Date
-						release_date_parts = meta["Release Date"][0].split()
+					if len(meta["Release Date"]) > 0:
+						# Check if full release date or only year
+						if (len(meta["Release Date"][0]) > 4):
+							# Full Release Date
+							release_date_parts = meta["Release Date"][0].split()
 
-						# Requires some formatting from MMMM DD, YYYY to [MM, DD, YYYY]
-						release_date_parts[0] = calendar_month[release_date_parts[0]]
-						release_date_parts[1] = release_date_parts[1].replace(",","")
+							# Requires some formatting from MMMM DD, YYYY to [MM, DD, YYYY]
+							release_date_parts[0] = calendar_month[release_date_parts[0]]
+							release_date_parts[1] = release_date_parts[1].replace(",","")
 
-						output.append("release: " + release_date_parts[2] + "-" + release_date_parts[0] + "-" + release_date_parts[1])
-						output.append("releaseYear: " + release_date_parts[2])
-						output.append("releaseMonth: " + release_date_parts[0])
-						output.append("releaseDay: " + release_date_parts[1])
+							output.append("release: " + release_date_parts[2] + "-" + release_date_parts[0] + "-" + release_date_parts[1])
+							output.append("releaseYear: " + release_date_parts[2])
+							output.append("releaseMonth: " + release_date_parts[0])
+							output.append("releaseDay: " + release_date_parts[1])
 
-					else:
-						# Year Only
-						output.append("releaseYear: " + meta["Release Date"][0])
+						else:
+							# Year Only
+							output.append("releaseYear: " + meta["Release Date"][0])
 
 				#
 				# Image Copying
