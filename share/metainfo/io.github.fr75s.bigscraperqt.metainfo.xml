@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.fr75s.bigscraperqt</id>
+
+  <name>bigscraper-qt</name>
+  <summary>LaunchBox Scraping Tool</summary>
+
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-3.0</project_license>
+
+  <keywords>
+    <keyword>bigscraper-qt</keyword>
+    <keyword>bigscraper</keyword>
+  </keywords>
+
+  <description>
+    <p>
+      Bigscraper-qt is a tool that allows you to scrape metadata from the LaunchBox Games Database. It allows you to collect information, images and videos for your game collection, from retro games to new ones.
+    </p>
+    <p>Features:</p>
+	<ul>
+		<li>Simple Qt-Based GUI</li>
+		<li>Access to most of LaunchBox's database</li>
+		<li>Easily export to Pegasus</li>
+		<li>Simple Installation process</li>
+		<li>Information, Image and Video downloads for games</li>
+	</ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.fr75s.bigscraperqt.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/Fr75s/bigscraperqt/main/docs/res/screenshot_2.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/Fr75s/bigscraperqt/main/docs/res/screenshot_1.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/Fr75s/bigscraperqt/main/docs/res/screenshot_4.png</image>
+    </screenshot>
+  </screenshots>
+
+  <content_rating type="oars-1.0" />
+
+  <releases>
+	<release version="1.0.0" date="2022-06-30">
+	  <description>
+		<p>Initial release for bigscraper-qt</p>
+	  </description>
+	</release>
+  </releases>
+
+  <developer_name>Fr75s</developer_name>
+  <url type="homepage">https://github.com/Fr75s/bigscraperqt/</url>
+</component>

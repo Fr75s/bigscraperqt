@@ -1,7 +1,11 @@
 [Desktop Entry]
-Name=bigscraper-qt
-Exec=io.github.fr75s.bigscraperqt
+Version=1.0
 Type=Application
-Terminal=false
+
+Name=bigscraper-qt
+Comment=LaunchBox Scraping Tool
+Categories=Utility;Qt;
+
 Icon=io.github.fr75s.bigscraperqt
-Categories=Utility;
+Exec=io.github.fr75s.bigscraperqt
+Terminal=false
