@@ -9,6 +9,8 @@ import QtQuick.Controls 2.15
 //import QtQuick.Dialogs
 import QtQuick.Dialogs 1.3
 
+import QtGamepad 1.15
+
 import "Pages"
 import "CommonUI"
 
@@ -255,11 +257,11 @@ ApplicationWindow {
 	}
 
 	// Pages
-	Home { visible: currentPage == 0 && !working }
-	ScrapeOne { visible: currentPage == 1 && !working }
-	ScrapeMany { visible: currentPage == 2 && !working }
-	Export { visible: currentPage == 3 && !working }
-	Options { visible: currentPage == 4 && !working }
+	Home { id: homeP; visible: currentPage == 0 && !working }
+	ScrapeOne { id: scrapeOneP; visible: currentPage == 1 && !working }
+	ScrapeMany { id: scrapeP; visible: currentPage == 2 && !working }
+	Export { id: exportP; visible: currentPage == 3 && !working }
+	Options { id: optionsP; visible: currentPage == 4 && !working }
 
 	Work { visible: working }
 
@@ -278,5 +280,220 @@ ApplicationWindow {
 
 	function folderPath(folderUrl) {
 		return folderUrl.toString().replace("file://", "")
+	}
+
+
+	// Gamepad Controls
+
+	property bool gpLeft: true
+	property bool gpRight: true
+	property bool gpUp: true
+	property bool gpDown: true
+
+	property bool gpL2: true
+	property bool gpR2: true
+
+	Gamepad {
+		id: gamepad
+		deviceId: GamepadManager.connectedGamepads.length > 0 ? GamepadManager.connectedGamepads[0] : -1
+
+		// Page Left
+        onButtonL1Changed: {
+            if (buttonL1) {
+                currentPage = currentPage - 1
+                if (currentPage < 0)
+					currentPage = 4
+            }
+        }
+
+        onButtonL2Changed: {
+            if (buttonL2 > 0.75 && gpL2) {
+                currentPage = currentPage - 1
+                if (currentPage < 0)
+					currentPage = 4
+
+				gpL2 = false
+            } else if (buttonL2 <= 0.75) {
+				gpL2 = true
+			}
+        }
+
+        // Page Right
+        onButtonR1Changed: {
+            if (buttonR1) {
+                currentPage = currentPage + 1
+                if (currentPage > 4)
+					currentPage = 0
+            }
+        }
+
+        onButtonR2Changed: {
+            if (buttonR2 > 0.75 && gpR2) {
+                currentPage = currentPage + 1
+                if (currentPage > 4)
+					currentPage = 0
+
+				gpR2 = false
+            } else if (buttonR2 <= 0.75) {
+				gpR2 = true
+			}
+        }
+
+
+        // Left / Right
+        onButtonLeftChanged: {
+            if (buttonLeft) {
+				gpOnLeft()
+			}
+        }
+
+        onButtonRightChanged: {
+            if (buttonRight) {
+				gpOnRight()
+			}
+        }
+
+		onAxisLeftXChanged: {
+            if (axisLeftX > 0.75 && gpRight) {
+                gpOnRight()
+				gpRight = false
+            } else if (axisLeftX <= 0.75) {
+				gpRight = true
+			}
+
+			if (axisLeftX < -0.75 && gpLeft) {
+                gpOnLeft()
+				gpLeft = false
+            } else if (axisLeftX >= -0.75) {
+				gpLeft = true
+			}
+        }
+
+        // Up / Down
+        onButtonUpChanged: {
+            if (buttonUp) {
+				gpOnUp()
+			}
+        }
+
+        onButtonDownChanged: {
+            if (buttonDown) {
+				gpOnDown()
+			}
+        }
+
+		onAxisLeftYChanged: {
+            if (axisLeftY > 0.75 && gpDown) {
+                gpOnDown()
+				gpDown = false
+            } else if (axisLeftY <= 0.75) {
+				gpDown = true
+			}
+
+			if (axisLeftY < -0.75 && gpUp) {
+                gpOnUp()
+				gpUp = false
+            } else if (axisLeftY >= -0.75) {
+				gpUp = true
+			}
+        }
+
+        // Confirm (A)
+
+        onButtonAChanged: {
+			if (buttonA)
+				gpOnA()
+		}
+
+		onButtonBChanged: {
+			if (buttonB)
+				gpOnB()
+		}
+	}
+
+	function gpOnLeft() {
+		switch(currentPage) {
+			case 0:
+				homeP.gpOnLeft()
+				break
+		}
+	}
+
+	function gpOnRight() {
+		switch(currentPage) {
+			case 0:
+				homeP.gpOnRight()
+				break
+		}
+	}
+
+	function gpOnUp() {
+		switch(currentPage) {
+			case 1:
+				scrapeOneP.gpOnUp()
+				break
+			case 2:
+				scrapeP.gpOnUp()
+				break
+			case 3:
+				exportP.gpOnUp()
+				break
+			case 4:
+				optionsP.gpOnUp()
+				break
+		}
+	}
+
+	function gpOnDown() {
+		switch(currentPage) {
+			case 1:
+				scrapeOneP.gpOnDown()
+				break
+			case 2:
+				scrapeP.gpOnDown()
+				break
+			case 3:
+				exportP.gpOnDown()
+				break
+			case 4:
+				optionsP.gpOnDown()
+				break
+		}
+	}
+
+	function gpOnA() {
+		switch(currentPage) {
+			case 0:
+				homeP.gpOnA()
+				break
+			case 1:
+				scrapeOneP.gpOnA()
+				break
+			case 2:
+				scrapeP.gpOnA()
+				break
+			case 3:
+				exportP.gpOnA()
+				break
+			case 4:
+				optionsP.gpOnA()
+				break
+		}
+	}
+
+	function gpOnB() {
+		switch(currentPage) {
+			case 0:
+				Qt.quit()
+			case 1:
+				scrapeOneP.gpOnB()
+				break
+			case 2:
+				scrapeP.gpOnB()
+				break
+			case 3:
+				exportP.gpOnB()
+				break
+		}
 	}
 }

@@ -16,6 +16,8 @@ Item {
 	property var chosenSystem: ""
 	property var chosenExport: "pegasus"
 
+	property int gpFocus: 0
+
 	PageTitle {
 		id: exportTitle
 		text: "Export Data"
@@ -30,6 +32,8 @@ Item {
 		anchors.rightMargin: pageWidthOffset / 2
 		anchors.top: exportTitle.bottom
 		anchors.topMargin: 24
+
+		focused: gpFocus == 0
 
 		label: "Select Output Folder"
 		btnIcon: (chosenFolder == "") ? "folder-symbolic" : ""
@@ -76,6 +80,8 @@ Item {
 		anchors.top: gameFolderSelect.bottom
 		anchors.topMargin: 24
 
+		focused: gpFocus == 1
+
 		label: "Select System"
 		btnIcon: (chosenSystem == "") ? "input-gamepad-symbolic" : ""
 		btnLabel: chosenSystem
@@ -94,6 +100,8 @@ Item {
 
 		anchors.bottom: parent.bottom
 		anchors.bottomMargin: 48
+
+		focus: gpFocus == 2
 
 		anchors.left: parent.left
 		anchors.leftMargin: sidebarWidth + pageWidthOffset / 2
@@ -144,6 +152,53 @@ Item {
 			chosenFolder = inFlatpak ? dirFromFileUrl(fileUrl) : folder
 			console.log("[UI]: Selected Folder (" + chosenFolder + ")")
 		}
+	}
+
+
+
+	function gpOnUp() {
+		if (gpFocus == 1 && systemSelect.dropOn) {
+			systemSelect.dropMenuGoUp()
+		} else {
+			gpFocus -= 1
+			if (gpFocus < 0)
+				gpFocus = 0
+		}
+	}
+
+	function gpOnDown() {
+		if (gpFocus == 1 && systemSelect.dropOn) {
+			systemSelect.dropMenuGoDown()
+		} else {
+			gpFocus += 1
+			if (gpFocus > 2)
+				gpFocus = 2
+		}
+	}
+
+	function gpOnA() {
+		switch(gpFocus) {
+			case 0:
+				exportFolderSelect.open()
+				break
+			case 1:
+				if (systemSelect.dropOn)
+					systemSelect.simulateClick()
+				else
+					systemSelect.invokeDropMenu()
+				break
+			case 2:
+				if (chosenFolder != "" && chosenSystem != "" && chosenExport != "") {
+					working = true;
+					runtask(3, chosenFolder + ";;;" + chosenSystem + ";;;" + chosenExport);
+				}
+				break
+		}
+	}
+
+	function gpOnB() {
+		if (gpFocus == 1 && systemSelect.dropOn)
+			systemSelect.hideDropMenu()
 	}
 
 }

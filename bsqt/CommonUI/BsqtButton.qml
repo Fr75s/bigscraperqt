@@ -36,7 +36,7 @@ Button {
 		radius: 2
 
 		border.width: 2
-		border.color: hover ? (colors.highlight) : (btnhighlight ? colors.dark : (check ? colors.highlight : (btnEnabled ? colors.button : colors.shadow)))
+		border.color: (hover || bsqtbutton.focus) ? (colors.highlight) : (btnhighlight ? colors.dark : (check ? colors.highlight : (btnEnabled ? colors.button : colors.shadow)))
 
 		Behavior on border.color {
 			ColorAnimation {

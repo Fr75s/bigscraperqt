@@ -11,6 +11,8 @@ Item {
 	property bool btnChecked: false
 	property bool isCheck: btnLblRowButton.check
 
+	property bool focused: false
+
 	property var maxBtnWidth: 600
 	property var btnSpacing: 32
 
@@ -40,6 +42,8 @@ Item {
 
 		width: (btnLblRowLabel.contentWidth + maxBtnWidth + btnSpacing > parent.width) ? (parent.width - btnLblRowLabel.contentWidth - btnSpacing) : maxBtnWidth
 		height: parent.height
+
+		focus: parent.focused
 
 		check: btnChecked
 		btnEnabled: btnEnable

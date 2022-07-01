@@ -10,6 +10,8 @@ Item {
 	id: home
 	anchors.fill: parent
 
+	property int btnFocusGP: 0
+
 	PageTitle {
 		id: homeTitle
 		text: "Welcome"
@@ -43,6 +45,8 @@ Item {
 		anchors.left: parent.left
 		anchors.leftMargin: pageWidth * 0.1
 
+		focus: btnFocusGP == 0
+
 		width: pageWidth * 0.4
 		height: 72
 		label: "Scrape"
@@ -60,11 +64,39 @@ Item {
 		anchors.right: parent.right
 		anchors.rightMargin: pageWidth * 0.1
 
+		focus: btnFocusGP == 1
+
 		width: pageWidth * 0.4
 		height: 72
 		label: "Export"
 
 		onClicked: {
+			currentPage = 3
+		}
+	}
+
+
+
+	function gpOnLeft() {
+		if (btnFocusGP == 1) {
+			btnFocusGP = 0
+		} else {
+			btnFocusGP = 1
+		}
+	}
+
+	function gpOnRight() {
+		if (btnFocusGP == 0) {
+			btnFocusGP = 1
+		} else {
+			btnFocusGP = 0
+		}
+	}
+
+	function gpOnA() {
+		if (btnFocusGP == 0) {
+			currentPage = 2
+		} else {
 			currentPage = 3
 		}
 	}

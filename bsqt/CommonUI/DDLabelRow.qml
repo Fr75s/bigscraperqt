@@ -7,6 +7,9 @@ Item {
 	property string label: ""
 	property var dropDownModel: []
 
+	property bool focused: false
+	property bool dropOn: dropMenu.visible
+
 	property var maxBtnWidth: 600
 	property var maxDDHeight: 600
 	property var btnSpacing: 32
@@ -38,6 +41,8 @@ Item {
 		width: (btnLblRowLabel.contentWidth + maxBtnWidth > parent.width) ? (parent.width - btnLblRowLabel.contentWidth - btnSpacing) : maxBtnWidth
 		height: parent.height
 
+		focus: parent.focused && !dropMenu.visible
+
 		ico: btnIcon
 		label: btnLabel
 
@@ -57,12 +62,14 @@ Item {
 		anchors.topMargin: dropTopMargin
 		anchors.right: btnLblRowButton.right
 
-		focus: parent.visible
+		focus: parent.focused && dropMenu.visible
 		visible: false
 		snapMode: ListView.SnapToItem
 		clip: true
 
 		model: dropDownModel
+
+		highlightFollowsCurrentItem: true
 
 		delegate: Item {
 			width: ListView.view.width
@@ -76,13 +83,19 @@ Item {
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.leftMargin: parent.height * 0.1
 
+				focus: dropMenu.focus && dropMenu.currentIndex == index
+
 				fontSize: height / 2
 				label: modelData
 
 				onClicked: {
-					pushAction(modelData)
-					dropMenu.visible = false
+					sclick()
 				}
+			}
+
+			function sclick() {
+				pushAction(modelData)
+				dropMenu.visible = false
 			}
 		}
 
@@ -103,5 +116,29 @@ Item {
 			radius: 48 * 0.8 * 0.25
 			z: parent.z - 1
 		}
+	}
+
+	function invokeDropMenu() {
+		dropMenu.visible = true
+	}
+
+	function hideDropMenu() {
+		dropMenu.visible = false
+	}
+
+	function simulateClick() {
+		dropMenu.currentItem.sclick()
+	}
+
+	function dropMenuGoUp() {
+		dropMenu.currentIndex -= 1
+		if (dropMenu.currentIndex < 0)
+			dropMenu.currentIndex = dropDownModel.length - 1
+	}
+
+	function dropMenuGoDown() {
+		dropMenu.currentIndex += 1
+		if (dropMenu.currentIndex > dropDownModel.length)
+			dropMenu.currentIndex = 0
 	}
 }

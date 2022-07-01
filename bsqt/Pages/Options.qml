@@ -10,6 +10,8 @@ Item {
 	id: options
 	anchors.fill: parent
 
+	property int gpFocus: 0
+
 	Text {
 		id: versionInfoLabel
 
@@ -53,6 +55,8 @@ Item {
 		anchors.top: subtitleScrapeOpts.bottom
 		anchors.topMargin: 24
 
+		focused: gpFocus == 0
+
 		label: "Video Downloads"
 		btnIcon: "checkbox"
 		btnCheckable: true
@@ -95,6 +99,8 @@ Item {
 		label: "Remove 5 Minute Limit"
 		btnIcon: "checkbox"
 		btnEnable: sOption1.isCheck
+
+		focused: gpFocus == 1
 
 		btnCheckable: true
 		btnChecked: defopts[1]
@@ -141,6 +147,33 @@ Item {
 		id: sOption2Modal
 		infoIcon: InfoModal.InfoIcon.Warning
 		information: "If you turn off this option, there is a high chance that you may download a video that's hours long. Many games that have videos on Launchbox have videos of longplays and the like; even common games may have videos up to 7 hours long. It is best to turn off this option, but if your network can handle it and you have the patience, it is here for you to turn off.<br><br>Note that if you turn on this option, be aware that bigscraper-qt doesn't track video download progress in the GUI. You will need to open it from the terminal to see yt-dlp's output."
+	}
+
+
+
+	function gpOnUp() {
+		gpFocus -= 1
+		if (gpFocus < 0)
+			gpFocus = 0
+	}
+
+	function gpOnDown() {
+		gpFocus += 1
+		if (gpFocus > 2)
+			gpFocus = 2
+	}
+
+	function gpOnA() {
+		switch(gpFocus) {
+			case 0:
+				sOption1.btnChecked = !sOption1.btnChecked
+				root.togopt("video")
+				break
+			case 1:
+				sOption2.btnChecked = !sOption2.btnChecked
+				root.togopt("videoOverLimit")
+				break
+		}
 	}
 
 
