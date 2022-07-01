@@ -157,6 +157,18 @@ Item {
 		}
 	}
 
+	function gpOnRUp() {
+		if (gpFocus == 1 && systemSelect.dropOn) {
+			systemSelect.dropMenuGoUp()
+		}
+	}
+
+	function gpOnRDown() {
+		if (gpFocus == 1 && systemSelect.dropOn) {
+			systemSelect.dropMenuGoDown()
+		}
+	}
+
 	function gpOnA() {
 		switch(gpFocus) {
 			case 0:

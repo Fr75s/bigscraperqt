@@ -43,6 +43,16 @@
   <content_rating type="oars-1.0" />
 
   <releases>
+    <release version="1.1.0" date="2022-07-01">
+	  <description>
+		<p>The first update to bigscraper-qt, adding new features:</p>
+        <ul>
+          <li>Basic Controller Support</li>
+          <li>Slightly more efficient folder scraping</li>
+        </ul>
+        <p>As well, some important tweaks and fixes have been made.</p>
+	  </description>
+	</release>
 	<release version="1.0.0" date="2022-06-30">
 	  <description>
 		<p>Initial release for bigscraper-qt</p>

@@ -398,8 +398,7 @@ ApplicationWindow {
 			}
         }
 
-        // Confirm (A)
-
+        // Confirm (A) & Cancel (B)
         onButtonAChanged: {
 			if (buttonA)
 				gpOnA()
@@ -409,8 +408,59 @@ ApplicationWindow {
 			if (buttonB)
 				gpOnB()
 		}
+
+		// Right Scroll
+		onAxisRightYChanged: {
+            gpRDownTimer.running = (axisRightY > 0.75)
+			gpRUpTimer.running = (axisRightY < -0.75)
+        }
 	}
 
+	Timer {
+		id: gpRUpTimer
+
+		interval: 75
+		repeat: true
+		running: false
+
+		onTriggered: {
+			switch(currentPage) {
+				case 1:
+					scrapeOneP.gpOnRUp()
+					break
+				case 2:
+					scrapeP.gpOnRUp()
+					break
+				case 3:
+					exportP.gpOnRUp()
+					break
+			}
+		}
+	}
+
+	Timer {
+		id: gpRDownTimer
+
+		interval: 75
+		repeat: true
+		running: false
+
+		onTriggered: {
+			switch(currentPage) {
+				case 1:
+					scrapeOneP.gpOnRDown()
+					break
+				case 2:
+					scrapeP.gpOnRDown()
+					break
+				case 3:
+					exportP.gpOnRDown()
+					break
+			}
+		}
+	}
+
+	// Push Actions
 	function gpOnLeft() {
 		switch(currentPage) {
 			case 0:

@@ -70,6 +70,7 @@ Item {
 		model: dropDownModel
 
 		highlightFollowsCurrentItem: true
+		highlightMoveDuration: 75
 
 		delegate: Item {
 			width: ListView.view.width
