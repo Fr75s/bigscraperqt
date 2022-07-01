@@ -145,10 +145,14 @@ class ScrapeTask(QObject):
 
 							# Download the image
 							self.out.emit("Downloading Image " + str(index + 1) + " of " + str(len(image_links)) + " for " + meta["Name"][0])
-							image = requests.get(link)
 
-							# Write to file
-							open(os.path.join(paths["MEDIA"], system, g) + "/" + image_title + ".png", "wb").write(image.content)
+							# Don't crash if the image can't download
+							try:
+								image = requests.get(link)
+								# Write to file
+								open(os.path.join(paths["MEDIA"], system, g) + "/" + image_title + ".png", "wb").write(image.content)
+							except:
+								self.out.emit("Image " + str(index + 1) + " couldn't Download.")
 
 							index += 1
 
@@ -167,7 +171,10 @@ class ScrapeTask(QObject):
 							}
 
 							self.out.emit("Attempting Video Download")
-							download_video(meta["Video Link"][0], dl_options)
+							try:
+								download_video(meta["Video Link"][0], dl_options)
+							except:
+								self.out.emit("Couldn't Download Video")
 
 						# Write Metadata
 						meta_json = json.dumps(meta, indent = 4)

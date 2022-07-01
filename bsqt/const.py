@@ -2,6 +2,8 @@ import os, sys, unidecode
 from xdg import xdg_data_home, xdg_config_home
 from yt_dlp import YoutubeDL
 
+from PyQt5.QtCore import *
+
 ## Some Constants
 
 ydl = YoutubeDL()
@@ -136,6 +138,7 @@ nongame_extensions = [
 	".jpg",
 	".sav",
 	".srm",
+	".bak",
 	".cue"
 ]
 
