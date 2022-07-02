@@ -139,7 +139,7 @@ Item {
 
 	function dropMenuGoDown() {
 		dropMenu.currentIndex += 1
-		if (dropMenu.currentIndex > dropDownModel.length)
+		if (dropMenu.currentIndex > dropDownModel.length - 1)
 			dropMenu.currentIndex = 0
 	}
 }

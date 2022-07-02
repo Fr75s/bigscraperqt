@@ -10,6 +10,9 @@ ydl = YoutubeDL()
 
 VIDEO_LEN_LIMIT = 300
 
+STICK_THRESHOLD = 32768 * 0.75
+STICK_DEADZONE = 32768 * 0.2
+
 ## Define some useful functions
 
 # Format text for matching

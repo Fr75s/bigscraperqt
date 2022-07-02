@@ -3,7 +3,7 @@
 # The Main Script
 ###
 
-import os, sys, json, shutil
+import os, sys, json, shutil, inputs
 
 from yt_dlp import YoutubeDL
 
@@ -77,26 +77,144 @@ class ProcessWorker(QObject):
 		self.complete.emit()
 
 
+class InputWorker(QThread):
+	input_event = pyqtSignal(str, bool)
+
+	leftOnL = True
+	rightOnL = True
+	upOnL = True
+	downOnL = True
+
+	triggerL = True
+	triggerR = True
+
+	def __init__(self):
+		super().__init__()
+
+	def run(self):
+		try:
+			while not(self.isInterruptionRequested()):
+				events = inputs.get_gamepad()
+				for event in events:
+					if not(event.code in ["ABS_X", "ABS_Y", "ABS_RX", "ABS_RY", "SYN_REPORT"]):
+						print(event.code, event.state)
+
+					# Confirm / Back
+					if event.code == "BTN_SOUTH" and event.state == 1:
+						self.input_event.emit("SOUTH", True)
+					if event.code == "BTN_EAST" and event.state == 1:
+						self.input_event.emit("EAST", True)
+
+					# Bumpers
+					if event.code == "BTN_TL" and event.state == 1:
+						self.input_event.emit("PGLEFT", True)
+					if event.code == "BTN_TR" and event.state == 1:
+						self.input_event.emit("PGRIGHT", True)
+
+					# Triggers
+					if event.code == "ABS_Z":
+						if event.state < 50:
+							self.triggerL = True
+						if event.state > 800 and self.triggerL:
+							self.input_event.emit("PGLEFT", True)
+							self.triggerL = False
+
+					if event.code == "ABS_RZ":
+						if event.state < 50:
+							self.triggerR = True
+						if event.state > 800 and self.triggerR:
+							self.input_event.emit("PGRIGHT", True)
+							self.triggerR = False
+
+					# Dpad
+					if event.code == "ABS_HAT0X":
+						if event.state == -1:
+							self.input_event.emit("LEFT", True)
+						if event.state == 1:
+							self.input_event.emit("RIGHT", True)
+
+					if event.code == "ABS_HAT0Y":
+						if event.state == -1:
+							self.input_event.emit("UP", True)
+						if event.state == 1:
+							self.input_event.emit("DOWN", True)
+
+					# Left Stick
+					if (event.code == "ABS_X"):
+						if abs(event.state) < STICK_DEADZONE:
+							self.leftOnL = True
+							self.rightOnL = True
+
+						if (event.state < (STICK_THRESHOLD * -1)) and (self.leftOnL):
+							self.input_event.emit("LEFT", True)
+							self.leftOnL = False
+
+						if (event.state > (STICK_THRESHOLD)) and (self.rightOnL):
+							self.input_event.emit("RIGHT", True)
+							self.rightOnL = False
+
+					if (event.code == "ABS_Y"):
+						if abs(event.state) < STICK_DEADZONE:
+							self.upOnL = True
+							self.downOnL = True
+
+						if (event.state < (STICK_THRESHOLD * -1)) and (self.upOnL):
+							self.input_event.emit("UP", True)
+							self.upOnL = False
+
+						if (event.state > (STICK_THRESHOLD)) and (self.downOnL):
+							self.input_event.emit("DOWN", True)
+							self.downOnL = False
+
+					# Right Stick
+					if (event.code == "ABS_RY"):
+						if abs(event.state) < STICK_DEADZONE:
+							self.input_event.emit("RUP", False)
+							self.input_event.emit("RDOWN", False)
+
+						if (event.state < (STICK_THRESHOLD * -1)):
+							self.input_event.emit("RUP", True)
+
+						if (event.state > (STICK_THRESHOLD)):
+							self.input_event.emit("RDOWN", True)
+
+
+
+		except Exception as e:
+			print("Input Error: ", e)
+
+	def stop(self):
+		self.requestInterruption()
+		self.setTerminationEnabled(True)
+		self.terminate()
+		self.wait()
+
+
+
 class MainAppBackend(QObject):
 	# Signals
 	finishedTask = pyqtSignal()
 	progressMsg = pyqtSignal(str, arguments=['msg'])
 	sendSystemsData = pyqtSignal(list, int)
 
-	sentData = False
+	inputEvent = pyqtSignal(str, bool)
 
 	def __init__(self):
 		super().__init__()
 
 	def on_load(self):
-		# One time send data
-		if not(self.sentData):
-			self.sentData = True
-			self.sendSystemsData.emit(list(convert.keys()), 0)
-			self.sendSystemsData.emit(list(explats.keys()), 1)
-			self.sendSystemsData.emit(list(options.values()), 2)
-			self.sendSystemsData.emit([in_flatpak], 3)
-			self.sendSystemsData.emit(list(info.values()), 4)
+		# Send Data
+		print("[I]: QML Loaded")
+		self.sendSystemsData.emit(list(convert.keys()), 0)
+		self.sendSystemsData.emit(list(explats.keys()), 1)
+		self.sendSystemsData.emit(list(options.values()), 2)
+		self.sendSystemsData.emit([in_flatpak], 3)
+		self.sendSystemsData.emit(list(info.values()), 4)
+
+		self.input_thread = InputWorker()
+
+		self.input_thread.start()
+		self.input_thread.input_event.connect(self.send_input_event)
 
 	def toggle_option(self, option):
 		options[option] = not(options[option])
@@ -125,6 +243,9 @@ class MainAppBackend(QObject):
 	def report_progress(self, msg):
 		print("[O]: " + msg)
 		self.progressMsg.emit(msg)
+
+	def send_input_event(self, input_event, val):
+		self.inputEvent.emit(input_event, val)
 
 
 def init_filesystem():

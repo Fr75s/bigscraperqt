@@ -9,8 +9,6 @@ import QtQuick.Controls 2.15
 //import QtQuick.Dialogs
 import QtQuick.Dialogs 1.3
 
-import QtGamepad 1.15
-
 import "Pages"
 import "CommonUI"
 
@@ -54,6 +52,41 @@ ApplicationWindow {
 				nativeStyle = inFlatpak
 			} else if (type == 4) {
 				appInfo = data
+			}
+		}
+
+		function onInputEvent(event, val) {
+			if (event == "SOUTH")
+				gpOnA()
+			if (event == "EAST")
+				gpOnB()
+
+			if (event == "LEFT")
+				gpOnLeft()
+			if (event == "RIGHT")
+				gpOnRight()
+			if (event == "UP")
+				gpOnUp()
+			if (event == "DOWN")
+				gpOnDown()
+
+			if (event == "RUP")
+				gpRUpTimer.running = val
+			if (event == "RDOWN")
+				gpRDownTimer.running = val
+
+			if (event == "PGLEFT") {
+				currentPage -= 1
+				if (currentPage < 0) {
+					currentPage = 4
+				}
+			}
+
+			if (event == "PGRIGHT") {
+				currentPage += 1
+				if (currentPage > 4) {
+					currentPage = 0
+				}
 			}
 		}
 	}
@@ -284,138 +317,6 @@ ApplicationWindow {
 
 
 	// Gamepad Controls
-
-	property bool gpLeft: true
-	property bool gpRight: true
-	property bool gpUp: true
-	property bool gpDown: true
-
-	property bool gpL2: true
-	property bool gpR2: true
-
-	Gamepad {
-		id: gamepad
-		deviceId: GamepadManager.connectedGamepads.length > 0 ? GamepadManager.connectedGamepads[0] : -1
-
-		// Page Left
-        onButtonL1Changed: {
-            if (buttonL1) {
-                currentPage = currentPage - 1
-                if (currentPage < 0)
-					currentPage = 4
-            }
-        }
-
-        onButtonL2Changed: {
-            if (buttonL2 > 0.75 && gpL2) {
-                currentPage = currentPage - 1
-                if (currentPage < 0)
-					currentPage = 4
-
-				gpL2 = false
-            } else if (buttonL2 <= 0.75) {
-				gpL2 = true
-			}
-        }
-
-        // Page Right
-        onButtonR1Changed: {
-            if (buttonR1) {
-                currentPage = currentPage + 1
-                if (currentPage > 4)
-					currentPage = 0
-            }
-        }
-
-        onButtonR2Changed: {
-            if (buttonR2 > 0.75 && gpR2) {
-                currentPage = currentPage + 1
-                if (currentPage > 4)
-					currentPage = 0
-
-				gpR2 = false
-            } else if (buttonR2 <= 0.75) {
-				gpR2 = true
-			}
-        }
-
-
-        // Left / Right
-        onButtonLeftChanged: {
-            if (buttonLeft) {
-				gpOnLeft()
-			}
-        }
-
-        onButtonRightChanged: {
-            if (buttonRight) {
-				gpOnRight()
-			}
-        }
-
-		onAxisLeftXChanged: {
-            if (axisLeftX > 0.75 && gpRight) {
-                gpOnRight()
-				gpRight = false
-            } else if (axisLeftX <= 0.75) {
-				gpRight = true
-			}
-
-			if (axisLeftX < -0.75 && gpLeft) {
-                gpOnLeft()
-				gpLeft = false
-            } else if (axisLeftX >= -0.75) {
-				gpLeft = true
-			}
-        }
-
-        // Up / Down
-        onButtonUpChanged: {
-            if (buttonUp) {
-				gpOnUp()
-			}
-        }
-
-        onButtonDownChanged: {
-            if (buttonDown) {
-				gpOnDown()
-			}
-        }
-
-		onAxisLeftYChanged: {
-            if (axisLeftY > 0.75 && gpDown) {
-                gpOnDown()
-				gpDown = false
-            } else if (axisLeftY <= 0.75) {
-				gpDown = true
-			}
-
-			if (axisLeftY < -0.75 && gpUp) {
-                gpOnUp()
-				gpUp = false
-            } else if (axisLeftY >= -0.75) {
-				gpUp = true
-			}
-        }
-
-        // Confirm (A) & Cancel (B)
-        onButtonAChanged: {
-			if (buttonA)
-				gpOnA()
-		}
-
-		onButtonBChanged: {
-			if (buttonB)
-				gpOnB()
-		}
-
-		// Right Scroll
-		onAxisRightYChanged: {
-            gpRDownTimer.running = (axisRightY > 0.75)
-			gpRUpTimer.running = (axisRightY < -0.75)
-        }
-	}
-
 	Timer {
 		id: gpRUpTimer
 
