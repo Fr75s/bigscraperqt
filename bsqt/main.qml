@@ -191,27 +191,27 @@ ApplicationWindow {
 	// Native
 	Action {
 		id: homeAction; icon.name: "user-home-symbolic"; text: "Home"
-		onTriggered: { currentPage = 0; root.doneloading() }
+		onTriggered: { currentPage = 0; }
 	}
 
 	Action {
 		id: scr1Action; icon.name: "download-symbolic"; text: "Scrape One"
-		onTriggered: { currentPage = 1; root.doneloading() }
+		onTriggered: { currentPage = 1; }
 	}
 
 	Action {
 		id: scrapeAction; icon.name: "folder-symbolic"; text: "Scrape"
-		onTriggered: { currentPage = 2; root.doneloading() }
+		onTriggered: { currentPage = 2; }
 	}
 
 	Action {
 		id: exportAction; icon.name: "export-symbolic"; text: "Export"
-		onTriggered: { currentPage = 3; root.doneloading() }
+		onTriggered: { currentPage = 3; }
 	}
 
 	Action {
 		id: optionsAction; icon.name: "settings-configure"; text: "Options"
-		onTriggered: { currentPage = 4; root.doneloading() }
+		onTriggered: { currentPage = 4; }
 	}
 
 	/*
