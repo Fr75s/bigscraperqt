@@ -15,7 +15,7 @@ Item {
 	property var chosenFolder: ""
 	property var chosenSystem: ""
 
-	property int gpFocus: 0
+	property int gpFocus: -1
 
 	PageTitle {
 		id: scrapeManyTitle

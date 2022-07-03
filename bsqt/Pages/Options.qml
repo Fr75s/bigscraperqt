@@ -10,7 +10,7 @@ Item {
 	id: options
 	anchors.fill: parent
 
-	property int gpFocus: 0
+	property int gpFocus: -1
 
 	Text {
 		id: versionInfoLabel

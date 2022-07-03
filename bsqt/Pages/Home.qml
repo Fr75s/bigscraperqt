@@ -10,7 +10,7 @@ Item {
 	id: home
 	anchors.fill: parent
 
-	property int btnFocusGP: 0
+	property int btnFocusGP: -1
 
 	PageTitle {
 		id: homeTitle
@@ -83,6 +83,9 @@ Item {
 		} else {
 			btnFocusGP = 1
 		}
+
+		if (btnFocusGP == -1)
+			btnFocusGP = 0
 	}
 
 	function gpOnRight() {
@@ -91,6 +94,9 @@ Item {
 		} else {
 			btnFocusGP = 0
 		}
+
+		if (btnFocusGP == -1)
+			btnFocusGP = 0
 	}
 
 	function gpOnA() {

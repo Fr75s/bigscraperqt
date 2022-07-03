@@ -16,7 +16,7 @@ Item {
 	property var chosenSystem: ""
 	property var chosenExport: "pegasus"
 
-	property int gpFocus: 0
+	property int gpFocus: -1
 
 	PageTitle {
 		id: exportTitle
