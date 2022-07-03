@@ -36,7 +36,6 @@ AppDir:
     include:
       - python
       - python-packaging
-      - perl
       - krb5
     exclude: []
 
