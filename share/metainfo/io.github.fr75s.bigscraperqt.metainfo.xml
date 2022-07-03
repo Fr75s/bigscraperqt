@@ -43,6 +43,11 @@
   <content_rating type="oars-1.0" />
 
   <releases>
+    <release version="1.1.1" date="2022-07-03">
+	  <description>
+		<p>Small patch to bigscraper-qt, switching to python based controller support and adding small fixes</p>
+	  </description>
+	</release>
     <release version="1.1.0" date="2022-07-01">
 	  <description>
 		<p>The first update to bigscraper-qt, adding new features:</p>

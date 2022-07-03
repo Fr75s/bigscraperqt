@@ -8,7 +8,20 @@ If you want more information, head to [the website](https://fr75s.github.io/bigs
 
 ## Running from Source
 
-To run the source code, first download the source code.
+Ensure you have the following dependencies installed:
+
+- Qt5
+
+- The following python packages:
+	- PyQt5
+	- requests
+	- yt_dlp
+	- inputs
+	- Unidecode
+	- lxml
+	- xdg
+
+Then, download the source code.
 
 	$ git clone https://github.com/Fr75s/bigscraperqt.git
 	$ cd bigscraperqt
@@ -16,6 +29,7 @@ To run the source code, first download the source code.
 After you download the source code, simply run the following. You may append a `-n` flag to test the flatpak version behavior.
 
 	$ python3 -m bsqt
+
 
 ## Building from Source
 

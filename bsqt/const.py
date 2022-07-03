@@ -63,7 +63,7 @@ def download_video(url, options):
 # Genral Information about the app
 info = {
 	"NAME": "bigscraper-qt",
-	"VERSION": "1.1.0",
+	"VERSION": "1.1.1",
 	"AUTHOR": "Fr75s",
 	"LICENSE": "GPLv3",
 	"URL": ""
