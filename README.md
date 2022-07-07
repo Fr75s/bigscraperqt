@@ -6,6 +6,8 @@ Bigscraper-qt is a tool you can use to scrape [the LaunchBox Games Database.](ht
 
 If you want more information, head to [the website](https://fr75s.github.io/bigscraperqt/). This README will mainly serve as information regarding the development of bigscraper-qt.
 
+Need help? For quick support, [Visit the Discord Server.](https://discord.gg/DUAFMgrhAY). If it is a severe enough problem, you may put it into the [issue tracker.](https://github.com/Fr75s/bigscraperqt/issues)
+
 ## Running from Source
 
 Ensure you have the following dependencies installed:
