@@ -63,7 +63,12 @@ setTimeout(() => {
 
 document.getElementById("footer").innerHTML = `
 <div width="80%" class="vcenter">
-	<p class="center">Site &amp; Project by <a href="https://github.com/Fr75s">Fr75s.</a><br><a href="https://github.com/Fr75s/bigscraperqt">Source Code</a></p>
+	<p class="center">Site &amp; Project by <a href="https://github.com/Fr75s">Fr75s.</a>
+	<br>
+	<a href="https://github.com/Fr75s/bigscraperqt">Source Code</a>
+	<a href="https://discord.gg/DUAFMgrhAY">Discord (Support)</a>
+	</p>
+
 </div>
 `
 

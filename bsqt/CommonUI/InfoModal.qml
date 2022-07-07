@@ -65,7 +65,7 @@ Rectangle {
 
 			anchors.centerIn: parent
 			text: information
-			color: "white"
+			color: colors.text
 
 			textFormat: Text.RichText
 			wrapMode: Text.WordWrap
