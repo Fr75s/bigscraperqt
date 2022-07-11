@@ -89,7 +89,7 @@ Item {
 
 		function pushAction(md) {
 			chosenSystem = md
-			console.log("[UI]: Selected System (" + md + ")")
+			root.log("Selected System (" + md + ")")
 		}
 	}
 
@@ -150,7 +150,7 @@ Item {
 		onAccepted: {
 			exportFolderSelect.close()
 			chosenFolder = inFlatpak ? dirFromFileUrl(fileUrl) : folder
-			console.log("[UI]: Selected Folder (" + chosenFolder + ")")
+			root.log("Selected Folder (" + chosenFolder + ")")
 		}
 	}
 

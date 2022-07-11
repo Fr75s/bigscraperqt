@@ -35,7 +35,9 @@ class ProcessWorker(QObject):
 	def run(self):
 		#print("[I]: " + str(self.task_data))
 		if (self.task == 0):
-			print("[I]: Default Task")
+			log("-----")
+			log("Starting Test Task", "I")
+			log("-----")
 
 			self.t = DefTask()
 			self.t.out.connect(self.report_progress)
@@ -43,31 +45,37 @@ class ProcessWorker(QObject):
 			self.t.run()
 
 		elif (self.task == 1):
-			print("[I]: Scrape One Game")
+			log("-----")
+			log("Begin Task: Scrape One Game", "I")
+			log("-----")
 
-			self.t = ScrOneTask(self.task_data)
+			self.t = ScrOneTask(self.task_data, options)
 			self.t.out.connect(self.report_progress)
 			self.t.complete.connect(self.done)
 			self.t.run()
 
 		elif (self.task == 2):
-			print("[I]: Scrape Folder")
+			log("-----")
+			log("Begin Task: Scrape Folder", "I")
+			log("-----")
 
-			self.t = ScrapeTask(self.task_data)
+			self.t = ScrapeTask(self.task_data, options)
 			self.t.out.connect(self.report_progress)
 			self.t.complete.connect(self.done)
 			self.t.run()
 
 		elif (self.task == 3):
-			print("[I]: Export")
+			log("-----")
+			log("Begin Task: Export", "I")
+			log("-----")
 
-			self.t = ExportTask(self.task_data)
+			self.t = ExportTask(self.task_data, options)
 			self.t.out.connect(self.report_progress)
 			self.t.complete.connect(self.done)
 			self.t.run()
 
 		else:
-			print("[I]: Invalid Task")
+			log("Invalid Task", "I")
 			self.done()
 
 	def report_progress(self, msg):
@@ -96,8 +104,8 @@ class InputWorker(QThread):
 			while not(self.isInterruptionRequested()):
 				events = inputs.get_gamepad()
 				for event in events:
-					if not(event.code in ["ABS_X", "ABS_Y", "ABS_RX", "ABS_RY", "SYN_REPORT"]):
-						print(event.code, event.state)
+					#if not(event.code in ["ABS_X", "ABS_Y", "ABS_RX", "ABS_RY", "SYN_REPORT"]):
+						#print(event.code, event.state)
 
 					# Confirm / Back
 					if event.code == "BTN_SOUTH" and event.state == 1:
@@ -181,7 +189,8 @@ class InputWorker(QThread):
 
 
 		except Exception as e:
-			print("Input Error: ", e)
+			log("Input Error: " + str(e), "W")
+			#print("Input Error: ", e)
 
 	def stop(self):
 		self.requestInterruption()
@@ -204,7 +213,7 @@ class MainAppBackend(QObject):
 
 	def on_load(self):
 		# Send Data
-		print("[I]: QML Loaded")
+		log("QML Loaded", "I")
 		self.sendSystemsData.emit(list(convert.keys()), 0)
 		self.sendSystemsData.emit(list(explats.keys()), 1)
 		self.sendSystemsData.emit(list(options.values()), 2)
@@ -218,7 +227,7 @@ class MainAppBackend(QObject):
 
 	def toggle_option(self, option):
 		options[option] = not(options[option])
-		print("[I]: Changed " + option + " to " + str(options[option]))
+		log("Changed " + option + " to " + str(options[option]), "O")
 
 		options_json = json.dumps(options, indent = 4)
 		open(os.path.join(paths["OPTS"], "options.json"), "w").write(options_json)
@@ -241,8 +250,11 @@ class MainAppBackend(QObject):
 		self.thread.start()
 
 	def report_progress(self, msg):
-		print("[O]: " + msg)
+		log(msg, "O")
 		self.progressMsg.emit(msg)
+
+	def log_qml(self, msg):
+		log(msg, "U")
 
 	def send_input_event(self, input_event, val):
 		self.inputEvent.emit(input_event, val)
@@ -260,7 +272,7 @@ def init_filesystem():
 
 	# Get Options if they exist
 	if os.path.isfile(os.path.join(paths["OPTS"], "options.json")):
-		print("[I]: Reading Options File")
+		log("Reading options file", "I")
 		options_file = json.load(open(os.path.join(paths["OPTS"], "options.json")))
 		# If there are changes to options, ensure they are confirmed
 		if (len(options_file.keys()) == len(options.keys())):
@@ -273,11 +285,9 @@ def init_filesystem():
 			open(os.path.join(paths["OPTS"], "options.json"), "w").write(options_json)
 
 	else:
-		print("[I]: Creating Options File")
+		log("Creating options file", "I")
 		options_json = json.dumps(options, indent = 4)
 		open(os.path.join(paths["OPTS"], "options.json"), "w").write(options_json)
-
-
 
 
 
@@ -285,11 +295,11 @@ def init_filesystem():
 def main():
 	# Main Function
 
-	print("Starting application...")
-	print(version_info)
+	log("Starting application", "I")
+	log(version_info, "I")
 
 	if (in_flatpak):
-		print("SANDBOXED MODE ENABLED")
+		log("SANDBOXED MODE ENABLED", "I")
 
 	app = QApplication(sys.argv)
 	app.setApplicationName(info["NAME"])
@@ -310,5 +320,6 @@ def main():
 	root.runtask.connect(backend.run_task)
 	root.doneloading.connect(backend.on_load)
 	root.togopt.connect(backend.toggle_option)
+	root.log.connect(backend.log_qml)
 
 	sys.exit(app.exec())

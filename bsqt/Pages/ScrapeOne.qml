@@ -62,7 +62,7 @@ Item {
 
 		function pushAction(md) {
 			chosenSystem = md
-			console.log("[UI]: Selected System (" + md + ")")
+			root.log("Selected System (" + md + ")")
 		}
 	}
 
@@ -121,7 +121,7 @@ Item {
 
 		onAccepted: {
 			chosenFile = fileUrl
-			console.log("[UI]: Selected File (" + fileUrl + ")")
+			root.log("Selected File (" + fileUrl + ")")
 			scrapeOneFileSelect.close()
 		}
 	}

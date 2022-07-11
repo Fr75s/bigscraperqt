@@ -11,15 +11,17 @@ class ExportTask(QObject):
 	out = pyqtSignal(str)
 
 	data = []
+	options_loc = []
 
-	def __init__(self, data_i):
+	def __init__(self, data_i, opt_main):
 		super().__init__()
 		self.data = data_i
+		self.options_loc = opt_main
 
 	def run(self):
 		self.out.emit("Starting...")
 
-		print("[I]: Data is " + str(self.data))
+		log("Data is " + str(self.data), "I")
 
 		# Initialize Variables from data
 		out_folder = self.data[0].replace("file://", "")
@@ -32,7 +34,7 @@ class ExportTask(QObject):
 		game_meta_files = []
 		valid = True
 
-		print("[I]: Will write to " + out_folder)
+		log("Will write to " + out_folder, "I")
 
 
 		# Check if metadata folder and images folder for system exists
@@ -47,7 +49,7 @@ class ExportTask(QObject):
 		if (out_format == "pegasus"):
 			# Export For Pegasus
 			self.out.emit("Exporting For Pegasus...")
-			print("[I]: Pegasus Export")
+			log("Format: PEGASUS", "I")
 
 			# System Values
 			output.append("collection: " + system_name)
@@ -56,6 +58,7 @@ class ExportTask(QObject):
 
 			# Go through each game's JSON file
 			for meta_file_raw in sorted(game_meta_files):
+				log("Reading Metadata File", "D", True)
 				meta_file = os.path.join(paths["METADATA"], system) + "/" + meta_file_raw
 				meta = json.load(open(meta_file))
 
@@ -144,7 +147,7 @@ class ExportTask(QObject):
 
 					# Check Images By Region
 					valid_image_exists = False
-					for reg in regions[options["region"]]:
+					for reg in regions[self.options_loc["region"]]:
 						for img in images_with_art:
 							if reg in img:
 								# Valid
@@ -184,7 +187,7 @@ class ExportTask(QObject):
 						#if art in img:
 
 							#image_exists = False
-							#for reg in regions[options["region"]]:
+							#for reg in regions[self.options_loc["region"]]:
 								#if reg in img:
 									#image_exists = True
 
@@ -219,7 +222,7 @@ class ExportTask(QObject):
 								#break
 						#else:
 							#art_found = False
-							#for reg in regions[options["region"]]:
+							#for reg in regions[self.options_loc["region"]]:
 								## Check for 2 things:
 								## 1. The corresponding art is in the image title
 								## 2. The image matches with any of the chosen locales
@@ -256,6 +259,8 @@ class ExportTask(QObject):
 				# Output to document
 				if (os.path.isfile(os.path.join(out_folder, "metadata.pegasus.txt"))):
 					os.remove(os.path.join(out_folder, "metadata.pegasus.txt"))
+
+				log("Writing Output", "I")
 				output_file = open(os.path.join(out_folder, "metadata.pegasus.txt"), "a")
 
 				for line in output:
@@ -274,7 +279,7 @@ class ExportTask(QObject):
 
 		else:
 			self.out.emit("Please Scrape Games Before Exporting. Exiting...")
-			print("[I]: Invalid Export")
+			log("Invalid Export", "I")
 
 
 		self.complete.emit()

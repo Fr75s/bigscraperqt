@@ -1,8 +1,30 @@
-import os, sys, unidecode
+import os, sys, datetime, unidecode
 from xdg import xdg_data_home, xdg_config_home
 from yt_dlp import YoutubeDL
 
 from PyQt5.QtCore import *
+
+## Genral Information
+info = {
+	"NAME": "bigscraper-qt",
+	"VERSION": "1.2.0",
+	"AUTHOR": "Fr75s",
+	"LICENSE": "GPLv3",
+	"URL": ""
+}
+
+version_info = info["NAME"] + " v" + info["VERSION"] + ". Made by " + info["AUTHOR"] + ". Licensed under " + info["LICENSE"]
+
+# Paths for saving configs
+paths = {
+	"DATA": xdg_data_home(),
+	"APP_DATA": os.path.join(xdg_data_home(), "bigscraper-qt/"),
+	"METADATA": os.path.join(xdg_data_home(), "bigscraper-qt/metadata/"),
+	"MEDIA": os.path.join(xdg_data_home(), "bigscraper-qt/media/"),
+	"LOGS": os.path.join(xdg_data_home(), "bigscraper-qt/logs/"),
+	"OPTS": os.path.join(xdg_config_home(), "bigscraper-qt/"),
+	"HOME": os.path.expanduser("~")
+}
 
 ## Some Constants
 
@@ -12,6 +34,26 @@ VIDEO_LEN_LIMIT = 300
 
 STICK_THRESHOLD = 32768 * 0.75
 STICK_DEADZONE = 32768 * 0.2
+
+## Get Time for Logging
+
+ct_raw = str(datetime.datetime.now())
+
+ct_s = ct_raw.split(" ")
+
+ct_l = ct_s[0].split("-")
+ct_r = ct_s[1].split(":")
+
+ct = [
+	ct_l[0],
+	ct_l[1],
+	ct_l[2],
+	ct_r[0],
+	ct_r[1],
+	ct_r[2].split(".")[0]
+]
+
+ct_format = ct[0] + ct[1] + ct[2] + "_" + ct[3] + ct[4] + ct[5]
 
 ## Define some useful functions
 
@@ -58,41 +100,16 @@ def download_video(url, options):
 		err = video_downloader.download(url)
 
 
+
 ## Define a few values for the scripts
-
-# Genral Information about the app
-info = {
-	"NAME": "bigscraper-qt",
-	"VERSION": "1.1.1",
-	"AUTHOR": "Fr75s",
-	"LICENSE": "GPLv3",
-	"URL": ""
-}
-
-version_info = info["NAME"] + " v" + info["VERSION"] + ". Made by " + info["AUTHOR"] + ". Licensed under " + info["LICENSE"]
-
-# Paths for saving configs
-paths = {
-	"DATA": xdg_data_home(),
-	"APP_DATA": os.path.join(xdg_data_home(), "bigscraper-qt/"),
-	"METADATA": os.path.join(xdg_data_home(), "bigscraper-qt/metadata/"),
-	"MEDIA": os.path.join(xdg_data_home(), "bigscraper-qt/media/"),
-	"OPTS": os.path.join(xdg_config_home(), "bigscraper-qt/"),
-	"HOME": os.path.expanduser("~")
-}
-
-in_flatpak = (".var/app" in paths["APP_DATA"])
-if ("-n" in sys.argv):
-	in_flatpak = True
-
-
 
 # OPTIONS
 options = {
 	"video": True,
 	"videoOverLimit": False,
 	"region": "na",
-	"glassyTitle": True
+	"glassyTitle": True,
+	"recache": False
 }
 
 regions = {
@@ -101,6 +118,51 @@ regions = {
 	"jp": ["(Japan)", "(World)", ""]
 }
 
+## Handle Flags
+
+in_flatpak = (".var/app" in paths["APP_DATA"])
+if ("-n" in sys.argv):
+	in_flatpak = True
+
+output_debug = False
+if ("-d" in sys.argv):
+	output_debug = True
+
+no_logs = False
+if ("--nolog" in sys.argv):
+	no_logs = True
+
+if ("-h" in sys.argv or "-?" in sys.argv or "--help" in sys.argv):
+	print(version_info)
+	print("For general help, visit the guide: https://fr75s.github.io/bigscraperqt/guide/index.html\n")
+
+	print("Flag Help:")
+	print("-n\tForce Native UI")
+	print("-d\tPrint Debug-level logs to stdout")
+	print("--nolog\tDo not generate log files")
+
+	sys.exit()
+
+
+## Logging
+
+if not(os.path.isdir(paths["LOGS"])):
+	os.makedirs(paths["LOGS"], exist_ok=True)
+
+if not(no_logs):
+	logfile = open(os.path.join(paths["LOGS"], ct_format + ".log"), "a")
+def log(msg, prefix="", debug=False):
+	m = msg
+	if not(prefix == ""):
+		m = "[" + prefix + "] " + msg
+
+	if not(debug) or output_debug:
+		print(m)
+
+	if not(no_logs):
+		logfile.write(m + "\n")
+
+log("Init Logging... " + ct[0] + "-" + ct[1] + "-" + ct[2] + " " + ct[3] + ":" + ct[4] + ":" + ct[5], "I")
 
 
 ## SCRAPING CONVERSIONS & LISTS

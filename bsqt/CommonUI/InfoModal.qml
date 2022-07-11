@@ -16,6 +16,8 @@ Rectangle {
 	property int infoIcon: InfoModal.InfoIcon.Info
 	property string information: ""
 
+	property bool invoked: false
+
 	visible: false
 
 
@@ -84,6 +86,8 @@ Rectangle {
 			anchors.horizontalCenter: parent.horizontalCenter
 			anchors.bottom: parent.bottom
 			anchors.bottomMargin: parent.height * 0.05
+
+			focus: invoked
 
 			label: "OK"
 			onClicked: {

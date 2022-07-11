@@ -26,6 +26,9 @@ ApplicationWindow {
 	signal doneloading()
 	signal togopt(string option)
 
+	signal log(string msg)
+	signal initOptions()
+
 	Connections {
 		target: backend
 
@@ -44,6 +47,7 @@ ApplicationWindow {
 				exportData = data
 			} else if (type == 2) {
 				defopts = data
+				root.initOptions()
 			} else if (type == 3) {
 				inFlatpak = data[0]
 				nativeStyle = inFlatpak
@@ -441,6 +445,9 @@ ApplicationWindow {
 				break
 			case 3:
 				exportP.gpOnB()
+				break
+			case 4:
+				optionsP.gpOnB()
 				break
 		}
 	}
