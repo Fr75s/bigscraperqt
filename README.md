@@ -44,16 +44,17 @@ Then, simply run one of the following, depending on which version to build:
 
 	build-appimage:
 	$ appimage-builder --skip-tests
+
 	build-flatpak:
-	# flatpak-builder build io.github.fr75s.bigscraper-qt.json --install --force-clean
+	# flatpak-builder build io.github.fr75s.bigscraper-qt.json --force-clean [...]
 
 ## Planned Features
 
 A list of new planned features are below.
 
-- Flathub Release (flatpak availability)
-- "All" export system option
+- Flathub Release
 - Export to Secondary frontend
+- Different Scraping Sources
 
 Some of these features were in previous iterations; I hope to add them to bigscraper-qt as well:
 
