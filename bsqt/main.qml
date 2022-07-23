@@ -36,6 +36,10 @@ ApplicationWindow {
 			workMsg = msg
 		}
 
+		function onProgressBar(res) {
+			workP.updateProgress(res)
+		}
+
 		function onFinishedTask() {
 			antiworkTimer.start()
 		}
@@ -297,7 +301,7 @@ ApplicationWindow {
 	Export { id: exportP; visible: currentPage == 3 && !working }
 	Options { id: optionsP; visible: currentPage == 4 && !working }
 
-	Work { visible: working }
+	Work { id: workP; visible: working }
 
 	function striphash(instr) {
 		let outv = instr + ""

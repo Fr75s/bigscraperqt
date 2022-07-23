@@ -11,6 +11,8 @@ class ScrapeTask(QObject):
 	complete = pyqtSignal()
 	out = pyqtSignal(str)
 
+	bar = pyqtSignal(int, int, int)
+
 	data = []
 	options_loc = []
 
@@ -18,6 +20,22 @@ class ScrapeTask(QObject):
 		super().__init__()
 		self.data = data_i
 		self.options_loc = opt_main
+
+	def video_progress_hook(self, d):
+		if d["status"] == "downloading":
+			downloaded = d["downloaded_bytes"]
+
+			total = None
+			if ("total_bytes" in d):
+				total = d["total_bytes"]
+			elif ("total_bytes_estimate" in d):
+				total = d["total_bytes_estimate"]
+
+			if not(total == None):
+				self.bar.emit(1, 1, 0)
+				self.bar.emit(3, downloaded, total)
+		if d["status"] == "finished":
+			self.bar.emit(1, 0, 0)
 
 	def run(self):
 
@@ -84,12 +102,13 @@ class ScrapeTask(QObject):
 		if not(len(game_names) == 0):
 			# Download 1st Page
 			self.out.emit("Getting Page " + str(current_page))
-			page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + cv_id[system] + "|" + str(current_page))
+			self.bar.emit(0, 1, 0)
+			page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + cv_id[system] + "|" + str(current_page), timeout=15)
 			log("Page Request Successful", "D", True)
 			pagetree = html.fromstring(page.content)
 			page_games = pagetree.xpath('//a[@class="list-item"]')
 
-			while (len(page_games) > 0) and not(page_after_all_alphabetically):
+			while (len(page_games) > 0) and not(page_after_all_alphabetically) and (games_found < len(game_names)):
 
 				# Scan through each text item
 				log("Parsing Website Data", "I")
@@ -115,7 +134,7 @@ class ScrapeTask(QObject):
 								os.makedirs(os.path.join(paths["MEDIA"], system, g), exist_ok=True)
 
 							games_found += 1
-							self.out.emit("Getting metadata for " + g + " (" + str(games_found) + " of " + str(len(game_names)) + ")")
+							self.out.emit("Getting details for " + g + " (" + str(games_found) + " of " + str(len(game_names)) + ")")
 
 							game_index = game_titles_format.index(g)
 							details_link = "https://gamesdb.launchbox-app.com" + pagetree.xpath('//a[@class="list-item"]/@href')[game_index]
@@ -165,12 +184,14 @@ class ScrapeTask(QObject):
 
 							# Download each image
 							index = 0
+							self.out.emit("Downloading Images For " + meta["Name"][0])
+							self.bar.emit(1, 1, 0)
 							for link in image_links:
 								# Get link
 								image_title = image_titles[index]
 
 								# Download the image
-								self.out.emit("Downloading Image " + str(index + 1) + " of " + str(len(image_links)) + " for " + meta["Name"][0])
+								#self.out.emit("Downloading Image " + str(index + 1) + " of " + str(len(image_links)) + " for " + meta["Name"][0])
 
 								# Don't crash if the image can't download
 								try:
@@ -185,6 +206,8 @@ class ScrapeTask(QObject):
 									self.out.emit("Image " + str(index + 1) + " couldn't Download.")
 
 								index += 1
+								self.bar.emit(3, index + 1, len(image_links))
+							self.bar.emit(1, 0, 0)
 
 							# List image titles in metadata
 							meta["Images"] = (image_titles if len(image_titles) > 0 else ["NULL"])
@@ -197,7 +220,8 @@ class ScrapeTask(QObject):
 
 								dl_options = {
 									"match_filter": video_len_test,
-									"outtmpl": os.path.join(paths["MEDIA"], system, g) + "/" + meta["Name"][0] + " - Video.%(ext)s"
+									"outtmpl": os.path.join(paths["MEDIA"], system, g) + "/" + meta["Name"][0] + " - Video.%(ext)s",
+									"progress_hooks": [self.video_progress_hook]
 								}
 
 								self.out.emit("Attempting Video Download")
@@ -211,7 +235,9 @@ class ScrapeTask(QObject):
 							meta_json = json.dumps(meta, indent = 4)
 							log("Writing Metadata to File", "D", True)
 							open(os.path.join(paths["METADATA"], system) + "/" + g + ".json", "w").write(meta_json)
+
 							self.out.emit("Collection Complete for " + g + " (" + str(games_found) + " of " + str(len(game_names)) + ")")
+							self.bar.emit(2, games_found, len(game_names))
 
 					current_page += 1
 					self.out.emit("Getting Page " + str(current_page))
@@ -225,7 +251,7 @@ class ScrapeTask(QObject):
 					pagetree = html.fromstring(page.content)
 					page_games = pagetree.xpath('//a[@class="list-item"]')
 
-
+			self.bar.emit(0, 0, 0)
 			self.out.emit("Process Complete: Found " + str(games_found) + " of " + str(len(game_names)) + " Games. Exiting...")
 
 		else:

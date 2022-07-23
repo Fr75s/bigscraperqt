@@ -10,6 +10,8 @@ class ExportTask(QObject):
 	complete = pyqtSignal()
 	out = pyqtSignal(str)
 
+	bar = pyqtSignal(int, int, int)
+
 	data = []
 	options_loc = []
 
@@ -36,7 +38,6 @@ class ExportTask(QObject):
 
 		log("Will write to " + out_folder, "I")
 
-
 		# Check if metadata folder and images folder for system exists
 		if not(os.path.isdir(os.path.join(paths["METADATA"], system))):
 			valid = False
@@ -56,7 +57,10 @@ class ExportTask(QObject):
 			output.append("shortname: " + system)
 			output.append("command: [INSERT COMMAND HERE]")
 
+			completed = 0
+
 			# Go through each game's JSON file
+			self.bar.emit(0, 1, 0)
 			for meta_file_raw in sorted(game_meta_files):
 				log("Reading Metadata File", "D", True)
 				meta_file = os.path.join(paths["METADATA"], system) + "/" + meta_file_raw
@@ -153,10 +157,15 @@ class ExportTask(QObject):
 								# Valid
 								valid_image_exists = True
 								for p_art in pegasus_artconv[art]:
-									# Copy File
-									shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png", os.path.join(out_folder, "media", p_art) + "/" + img + ".png")
-									# Add to Output
-									output_imgs[p_art] = "assets." + p_art + ": " + os.path.join("media", p_art) + "/" + img + ".png"
+									# Check for file
+									if (os.path.isfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png")):
+										# Copy File
+										log(f"Copying {img}.png to folder", "D", True)
+										shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png", os.path.join(out_folder, "media", p_art) + "/" + img + ".png")
+										# Add to Output
+										output_imgs[p_art] = "assets." + p_art + ": " + os.path.join("media", p_art) + "/" + img + ".png"
+									else:
+										log(f"Couldn't copy {img}, doesn't exist", "I")
 								break
 
 						if valid_image_exists:
@@ -169,10 +178,15 @@ class ExportTask(QObject):
 								# Valid
 								valid_image_exists = True
 								for p_art in pegasus_artconv[art]:
-									# Copy File
-									shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png", os.path.join(out_folder, "media", p_art) + "/" + img + ".png")
-									# Add to Output
-									output_imgs[p_art] = "assets." + p_art + ": " + os.path.join("media", p_art) + "/" + img + ".png"
+									# Check for file
+									if (os.path.isfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png")):
+										# Copy File
+										log(f"Copying {img}.png to folder", "D", True)
+										shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png", os.path.join(out_folder, "media", p_art) + "/" + img + ".png")
+										# Add to Output
+										output_imgs[p_art] = "assets." + p_art + ": " + os.path.join("media", p_art) + "/" + img + ".png"
+									else:
+										log(f"Couldn't copy {img}, doesn't exist", "I")
 								break
 
 				for o in output_imgs:
@@ -268,6 +282,10 @@ class ExportTask(QObject):
 
 				output_file.close()
 
+				completed += 1
+				self.bar.emit(2, completed, len(game_meta_files))
+
+			self.bar.emit(0, 0, 0)
 			self.out.emit("Finished Output. Exiting...")
 
 		#elif (out_format == "es"):

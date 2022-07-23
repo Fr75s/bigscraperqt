@@ -23,6 +23,7 @@ class ProcessWorker(QObject):
 	# Signals
 	complete = pyqtSignal()
 	progressMsg = pyqtSignal(str)
+	progressBar = pyqtSignal(int, int, int)
 
 	task = 0 # Default: Nothing
 	task_data = []
@@ -51,6 +52,7 @@ class ProcessWorker(QObject):
 
 			self.t = ScrOneTask(self.task_data, options)
 			self.t.out.connect(self.report_progress)
+			self.t.bar.connect(self.progress_bar)
 			self.t.complete.connect(self.done)
 			self.t.run()
 
@@ -61,6 +63,7 @@ class ProcessWorker(QObject):
 
 			self.t = ScrapeTask(self.task_data, options)
 			self.t.out.connect(self.report_progress)
+			self.t.bar.connect(self.progress_bar)
 			self.t.complete.connect(self.done)
 			self.t.run()
 
@@ -71,6 +74,7 @@ class ProcessWorker(QObject):
 
 			self.t = ExportTask(self.task_data, options)
 			self.t.out.connect(self.report_progress)
+			self.t.bar.connect(self.progress_bar)
 			self.t.complete.connect(self.done)
 			self.t.run()
 
@@ -80,6 +84,9 @@ class ProcessWorker(QObject):
 
 	def report_progress(self, msg):
 		self.progressMsg.emit(msg)
+
+	def progress_bar(self, action, pre, end):
+		self.progressBar.emit(action, pre, end)
 
 	def done(self):
 		self.complete.emit()
@@ -202,10 +209,23 @@ class InputWorker(QThread):
 
 class MainAppBackend(QObject):
 	# Signals
+
+	# Finished
 	finishedTask = pyqtSignal()
+
+	# Send output message (string: message)
 	progressMsg = pyqtSignal(str, arguments=['msg'])
+	# Send progress to bar (int: action, int: updated value, int: total)
+	# action = 0: toggle total progress bar
+	# action = 1: toggle game progress bar
+	# action = 2: update total progress bar value
+	# action = 3: update game progress bar value
+	progressBar = pyqtSignal(list)
+
+	# Send data to QML (list: data, int: type)
 	sendSystemsData = pyqtSignal(list, int)
 
+	# Send input to QML (string: input, bool: value)
 	inputEvent = pyqtSignal(str, bool)
 
 	def __init__(self):
@@ -247,11 +267,38 @@ class MainAppBackend(QObject):
 		self.thread.finished.connect(self.thread.deleteLater)
 
 		self.taskWorker.progressMsg.connect(self.report_progress)
+		self.taskWorker.progressBar.connect(self.update_progress_bar)
 		self.thread.start()
 
 	def report_progress(self, msg):
 		log(msg, "O")
 		self.progressMsg.emit(msg)
+
+	def update_progress_bar(self, action, pre, end):
+		if (action == 0):
+			if (pre == 0):
+				log("Hiding Main Bar", "O")
+			else:
+				log("Showing Main Bar", "O")
+		if (action == 1):
+			if (pre == 0):
+				log("Hiding Game Bar", "O")
+			else:
+				log("Showing Game Bar", "O")
+		if (action == 4):
+			if (pre == 0):
+				log("Hiding Secondary Game Bar", "O")
+			else:
+				log("Showing Secondary Game Bar", "O")
+		if (action == 2):
+			log(f"Updating Main Bar to value {pre} / {end}", "O")
+		if (action == 3):
+			log(f"Updating Game Bar to value {pre} / {end}", "O")
+		if (action == 5):
+			log(f"Updating Secondary Game Bar to value {pre} / {end}", "O")
+
+
+		self.progressBar.emit([action, pre, end])
 
 	def log_qml(self, msg):
 		log(msg, "U")

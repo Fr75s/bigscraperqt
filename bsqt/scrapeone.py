@@ -13,6 +13,8 @@ class ScrOneTask(QObject):
 	complete = pyqtSignal()
 	out = pyqtSignal(str)
 
+	bar = pyqtSignal(int, int, int)
+
 	data = []
 	options_loc = {}
 
@@ -20,6 +22,22 @@ class ScrOneTask(QObject):
 		super().__init__()
 		self.data = data_i
 		self.options_loc = opt_main
+
+	def video_progress_hook(self, d):
+		if d["status"] == "downloading":
+			downloaded = d["downloaded_bytes"]
+
+			total = None
+			if ("total_bytes" in d):
+				total = d["total_bytes"]
+			elif ("total_bytes_estimate" in d):
+				total = d["total_bytes_estimate"]
+
+			if not(total == None):
+				self.bar.emit(1, 1, 0)
+				self.bar.emit(3, downloaded, total)
+		if d["status"] == "finished":
+			self.bar.emit(1, 0, 0)
 
 	def run(self):
 
@@ -78,7 +96,6 @@ class ScrOneTask(QObject):
 				# Check if game is in list
 				if (game_match in game_titles_format):
 					# Game is in list: Stop scraping pages
-					self.out.emit("Game Found, Getting Metadata")
 					game_found = True
 					break
 				else:
@@ -107,9 +124,35 @@ class ScrOneTask(QObject):
 
 				# Get details page
 				log("Attempting to get Details Page", "I")
-				details_page = requests.get(details_link, timeout=15)
-				log("Page Request Successful", "D", True)
+				try:
+					self.out.emit("Game Found, Getting Details Page")
+					details_page = requests.get(details_link, timeout=15)
+					log("Page Request Successful", "D", True)
+				except Exception as e:
+					self.out.emit("Couldn't get details, terminating app...")
+					raise e
 				details = html.fromstring(details_page.content)
+
+				# Get Images page
+				log("Attempting to get Images Page", "I")
+				try:
+					self.out.emit("Getting Images Page")
+					images_page = requests.get(images_link, timeout=15)
+					log("Page Request Successful", "D", True)
+				except Exception as e:
+					self.out.emit("Couldn't get details, terminating app...")
+					raise e
+				images = html.fromstring(images_page.content)
+
+				# Get links and corresponding titles
+				log("Parsing Page for Images", "D", True)
+				image_links = images.xpath('//a[contains(@href, "https://images.launchbox-app.com")]/@href')
+				image_titles = images.xpath('//a[contains(@href, "https://images.launchbox-app.com")]/@data-title')
+
+				self.bar.emit(0, 1, 0)
+				TASKS_COMPLETE = 0
+				TOTAL_TASKS = 1
+				TOTAL_TASKS += len(image_links)
 
 				# Initialize metadata object
 				meta = {}
@@ -135,26 +178,26 @@ class ScrOneTask(QObject):
 						log("Adding " + i + " to metadata", "D", True)
 						meta[i] = details.xpath('//span[@id="communityRating"]/text()')
 
-				## Image Downloads
-				# Get Images page
-				self.out.emit("Getting Images Page")
-				images_page = requests.get(images_link, timeout=15)
-				log("Page Request Successful", "D", True)
-				images = html.fromstring(images_page.content)
+				if (self.options_loc["video"] and meta["Video Link"]):
+					TOTAL_TASKS += 1
 
-				# Get links and corresponding titles
-				log("Parsing Page for Images", "D", True)
-				image_links = images.xpath('//a[contains(@href, "https://images.launchbox-app.com")]/@href')
-				image_titles = images.xpath('//a[contains(@href, "https://images.launchbox-app.com")]/@data-title')
+
+				TASKS_COMPLETE += 1
+				self.bar.emit(2, TASKS_COMPLETE, TOTAL_TASKS)
+
+
+				## Image Downloads
 
 				# Download each image
 				index = 0
+				self.out.emit("Downloading Images")
 				for link in image_links:
 					# Get link
 					image_title = image_titles[index]
 
 					# Download the image
-					self.out.emit("Downloading Image " + str(index + 1) + " of " + str(len(image_links)))
+					#self.out.emit("Downloading Image " + str(index + 1) + " of " + str(len(image_links)))
+					#self.bar.emit(2, index + 1, len(image_links))
 
 					# Don't crash if the image can't download
 					try:
@@ -168,6 +211,8 @@ class ScrOneTask(QObject):
 						self.out.emit("Image " + str(index + 1) + " couldn't Download.")
 
 					index += 1
+					TASKS_COMPLETE += 1
+					self.bar.emit(2, TASKS_COMPLETE, TOTAL_TASKS)
 
 				# List image titles in metadata
 				meta["Images"] = (image_titles if len(image_titles) > 0 else ["NULL"])
@@ -183,12 +228,15 @@ class ScrOneTask(QObject):
 
 					dl_options = {
 						"match_filter": video_len_test,
-						"outtmpl": os.path.join(paths["MEDIA"], system, game_match) + "/" + meta["Name"][0] + " - Video.%(ext)s"
+						"outtmpl": os.path.join(paths["MEDIA"], system, game_match) + "/" + meta["Name"][0] + " - Video.%(ext)s",
+						"progress_hooks": [self.video_progress_hook]
 					}
 
 					self.out.emit("Attempting Video Download")
 					try:
 						download_video(meta["Video Link"][0], dl_options)
+						TASKS_COMPLETE += 1
+						self.bar.emit(2, TASKS_COMPLETE, TOTAL_TASKS)
 					except Exception as e:
 						log("Video Download Failed: " + str(e), "E")
 						self.out.emit("Couldn't Download Video")
@@ -201,6 +249,7 @@ class ScrOneTask(QObject):
 				open(os.path.join(paths["METADATA"], system) + "/" + game_match + ".json", "w").write(meta_json)
 
 				# Complete.
+				self.bar.emit(0, 0, 0)
 				self.out.emit("Scraping Complete. Exiting...")
 
 			else:
@@ -210,4 +259,6 @@ class ScrOneTask(QObject):
 			log("Game Already Scraped", "I")
 			self.out.emit("Game Already Scraped. Exiting...")
 
+		self.bar.emit(0, 0, 0)
+		self.bar.emit(1, 0, 0)
 		self.complete.emit()

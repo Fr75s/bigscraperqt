@@ -1,12 +1,14 @@
 # bigscraper-qt
 
+[VISIT THE WEBSITE HERE](https://fr75s.github.io/bigscraperqt/)
+
 ## LaunchBox scraping tool
 
 Bigscraper-qt is a tool you can use to scrape [the LaunchBox Games Database.](https://gamesdb.launchbox-app.com/) With a simple GUI, you can easily scrape metadata from a variety of systems.
 
-If you want more information, head to [the website](https://fr75s.github.io/bigscraperqt/). This README will mainly serve as information regarding the development of bigscraper-qt.
+If you want more information, head to [the website.](https://fr75s.github.io/bigscraperqt/) This README will mainly serve as information regarding the development of bigscraper-qt.
 
-Need help? For quick support, [Visit the Discord Server.](https://discord.gg/DUAFMgrhAY). If it is a severe enough problem, you may put it into the [issue tracker.](https://github.com/Fr75s/bigscraperqt/issues)
+Need help? For quick support or light feature suggestions, [Visit the Discord Server.](https://discord.gg/DUAFMgrhAY) If it is a severe enough problem, you may put it into the [issue tracker.](https://github.com/Fr75s/bigscraperqt/issues)
 
 ## Running from Source
 
@@ -28,7 +30,7 @@ Then, download the source code.
 	$ git clone https://github.com/Fr75s/bigscraperqt.git
 	$ cd bigscraperqt
 
-After you download the source code, simply run the following. You may append a `-n` flag to test the flatpak version behavior.
+After you download the source code, simply run the following. To see available flags, append `-h`.
 
 	$ python3 -m bsqt
 
