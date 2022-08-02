@@ -186,4 +186,10 @@ Item {
 	}
 
 
+
+	function resetValues() {
+		chosenSystem = ""
+	}
+
+
 }

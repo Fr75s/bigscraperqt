@@ -21,6 +21,7 @@ class ExportTask(QObject):
 		self.options_loc = opt_main
 
 	def run(self):
+
 		self.out.emit("Starting...")
 
 		log("Data is " + str(self.data), "I")
@@ -28,7 +29,7 @@ class ExportTask(QObject):
 		# Initialize Variables from data
 		out_folder = self.data[0].replace("file://", "")
 		system_name = self.data[1]
-		system = convert[self.data[1]]
+		system = systems["LaunchBox"][self.data[1]]
 		out_format = self.data[2]
 
 		output = []
@@ -47,7 +48,7 @@ class ExportTask(QObject):
 			valid = False
 
 		# Split Based on Pegasus / EmulationStation Export
-		if (out_format == "pegasus"):
+		if (out_format == "Pegasus Frontend"):
 			# Export For Pegasus
 			self.out.emit("Exporting For Pegasus...")
 			log("Format: PEGASUS", "I")
@@ -113,6 +114,8 @@ class ExportTask(QObject):
 							# Requires some formatting from MMMM DD, YYYY to [MM, DD, YYYY]
 							release_date_parts[0] = calendar_month[release_date_parts[0]]
 							release_date_parts[1] = release_date_parts[1].replace(",","")
+							if int(release_date_parts[1]) < 10 and not("0" in release_date_parts[1]):
+								release_date_parts[1] = "0" + release_date_parts[1]
 
 							output.append("release: " + release_date_parts[2] + "-" + release_date_parts[0] + "-" + release_date_parts[1])
 							output.append("releaseYear: " + release_date_parts[2])
@@ -270,27 +273,171 @@ class ExportTask(QObject):
 						output.append("assets.video: " + os.path.join("media", "video", f))
 						break
 
-				# Output to document
-				if (os.path.isfile(os.path.join(out_folder, "metadata.pegasus.txt"))):
-					os.remove(os.path.join(out_folder, "metadata.pegasus.txt"))
-
-				log("Writing Output", "I")
-				output_file = open(os.path.join(out_folder, "metadata.pegasus.txt"), "a")
-
-				for line in output:
-					output_file.writelines(line + "\n")
-
-				output_file.close()
-
 				completed += 1
 				self.bar.emit(2, completed, len(game_meta_files))
+
+			# Output to document
+			if (os.path.isfile(os.path.join(out_folder, "metadata.pegasus.txt"))):
+				os.remove(os.path.join(out_folder, "metadata.pegasus.txt"))
+
+			log("Writing Output", "I")
+			output_file = open(os.path.join(out_folder, "metadata.pegasus.txt"), "a")
+
+			for line in output:
+				output_file.writelines(line + "\n")
+
+			output_file.close()
 
 			self.bar.emit(0, 0, 0)
 			self.out.emit("Finished Output. Exiting...")
 
-		#elif (out_format == "es"):
-		#	self.out.emit("Exporting For EmulationStation...")
-		#	print("[I]: EmulationStation Export")
+		elif (out_format == "EmulationStation"):
+			self.out.emit("Exporting For EmulationStation...")
+			log("Format: EmulationStation", "I")
+
+			output = []
+			output.append("<gameList>")
+
+			# Get Games
+			completed = 0
+			self.bar.emit(0, 1, 0)
+			for meta_file_raw in sorted(game_meta_files):
+				log("Reading Metadata File", "D", True)
+				meta_file = os.path.join(paths["METADATA"], system) + "/" + meta_file_raw
+				meta = json.load(open(meta_file))
+
+				game_form = form(meta["Name"][0])
+				output.append("\t<game>")
+
+				# File
+				output.append(f'\t\t<path>{meta["File"]}</path>')
+
+				# Name
+				output.append(f'\t\t<name>{meta["Name"][0]}</name>')
+
+				# Developer, Publisher, Genre
+				if ("Developers" in meta):
+					output.append(f'\t\t<developer>{meta["Developers"][0]}</developer>')
+				if ("Publishers" in meta):
+					output.append(f'\t\t<publisher>{meta["Publishers"][0]}</publisher>')
+				if ("Genres" in meta):
+					output.append(f'\t\t<genre>{meta["Genres"][0]}</genre>')
+
+				# Description
+				if ("Overview" in meta):
+					output.append(f'\t\t<desc>{filter_escapes(meta["Overview"][0])}</desc>')
+
+				# Players
+				if ("Max Players" in meta):
+					output.append(f'\t\t<players>{meta["Max Players"][0]}</players>')
+
+				# Release Date
+				if ("Release Date" in meta):
+					if len(meta["Release Date"]) > 0:
+						# Check if full release date or only year
+						if (len(meta["Release Date"][0]) > 4):
+							# Full Release Date
+							release_date_parts = meta["Release Date"][0].split()
+
+							# Requires some formatting from MMMM DD, YYYY to YYYYMMDD
+							release_date_parts[0] = calendar_month[release_date_parts[0]]
+							release_date_parts[1] = release_date_parts[1].replace(",","")
+							if int(release_date_parts[1]) < 10 and not("0" in release_date_parts[1]):
+								release_date_parts[1] = "0" + release_date_parts[1]
+
+							output.append(f'\t\t<releasedate>{release_date_parts[2]}{release_date_parts[0]}{release_date_parts[1]}T000000</releasedate>')
+
+						else:
+							# Year Only
+							output.append(f'\t\t<releasedate>{meta["Release Date"][0]}0101T000000</releasedate>')
+
+				# Rating
+				if ("Rating" in meta):
+					rating_conv = float(meta["Rating"][0]) / 5
+					output.append(f'\t\t<rating>{rating_conv}</rating>')
+
+
+				# Images
+				# Check Images By Region
+				boxarts = []
+				for img in meta["Images"]:
+					if "Box - Front" in img:
+						boxarts.append(img)
+
+				valid_image_exists = False
+				for reg in regions[self.options_loc["region"]]:
+					for img in boxarts:
+						if reg in img:
+							# Valid
+							valid_image_exists = True
+							# Check for file
+							if (os.path.isfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png")):
+								# Copy File
+								log(f"Copying {img}.png to folder", "D", True)
+								shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png", os.path.join(out_folder, "media", "boxFront") + "/" + img + ".png")
+								# Add to Output
+								output.append(f"\t\t<image>media/boxFront/{img}.png</image>")
+							else:
+								log(f"Couldn't copy {img}, doesn't exist", "I")
+
+							break
+
+					if valid_image_exists:
+						break
+
+				# Check Regionless Images
+				if not(valid_image_exists):
+					for img in boxarts:
+						if not("(" in img):
+							# Valid
+							valid_image_exists = True
+							# Check for file
+							if (os.path.isfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png")):
+								# Copy File
+								log(f"Copying {img}.png to folder", "D", True)
+								shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png", os.path.join(out_folder, "media", "boxFront") + "/" + img + ".png")
+								# Add to Output
+								output.append(f"\t\t<image>media/boxFront/{img}.png</image>")
+							else:
+								log(f"Couldn't copy {img}, doesn't exist", "I")
+
+							break
+
+
+				# Video
+				video_title = meta["Name"][0] + " - Video"
+
+				for f in os.listdir(os.path.join(paths["MEDIA"], system, game_form)):
+					if video_title in f:
+						log(f"Copying {f} to video folder", "D", True)
+
+						shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + f, os.path.join(out_folder, "media", "video") + "/" + f)
+
+						output.append(f"\t\t<video>media/video/{img}.png</video>")
+
+				output.append("\t</game>")
+
+				completed += 1
+				self.bar.emit(2, completed, len(game_meta_files))
+
+			output.append("</gameList>")
+
+			# Output to document
+			if (os.path.isfile(os.path.join(out_folder, "gamelist.xml"))):
+				os.remove(os.path.join(out_folder, "gamelist.xml"))
+
+			log("Writing Output", "I")
+			output_file = open(os.path.join(out_folder, "gamelist.xml"), "a")
+
+			for line in output:
+				output_file.writelines(line + "\n")
+
+			output_file.close()
+
+			self.bar.emit(0, 0, 0)
+			self.out.emit("Finished Output. Exiting...")
+
+
 
 
 

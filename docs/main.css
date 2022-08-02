@@ -47,7 +47,7 @@ main {
 	}
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
 	text-align: center;
 	font-family: "Jost";
 	font-weight: 700;
@@ -74,6 +74,7 @@ code {
 h1 { font-size: 3.333rem; word-wrap: break-word; }
 h2 { font-size: 2rem; }
 h3 { font-size: 1.333rem; }
+h4 { font-size: 1rem; }
 
 
 

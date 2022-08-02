@@ -25,10 +25,12 @@ ApplicationWindow {
 	signal runtask(int taskID, var taskData)
 	signal doneloading()
 	signal togopt(string option)
+	signal setopt(string option, string value)
 
 	signal log(string msg)
 	signal initOptions()
 
+	property int sentData: 0
 	Connections {
 		target: backend
 
@@ -47,16 +49,32 @@ ApplicationWindow {
 		function onSendSystemsData(data, type) {
 			if (type == 0) {
 				systemData = data
+				resetValues()
+				sentData += 1
 			} else if (type == 1) {
 				exportData = data
+				sentData += 1
 			} else if (type == 2) {
 				defopts = data
-				root.initOptions()
+				sentData += 1
 			} else if (type == 3) {
 				inFlatpak = data[0]
 				nativeStyle = inFlatpak
+				sentData += 1
 			} else if (type == 4) {
 				appInfo = data
+				sentData += 1
+			} else if (type == 5) {
+				optionValuesInit = data
+				sentData += 1
+			} else if (type == 6) {
+				optionValues = data
+				sentData += 1
+			}
+
+
+			if (sentData == 7) {
+				root.initOptions()
 			}
 		}
 
@@ -126,6 +144,8 @@ ApplicationWindow {
 	property bool working: false
 
 	// Constants
+	signal hideOtherDDLR(string excludedLabel)
+
 	property int sidebarWidth: working ? 0 : 0 //96
 	property int toolbarHeight: working ? 0 : 42
 	property int pageWidthOffset: 96
@@ -138,6 +158,9 @@ ApplicationWindow {
 	property var exportData: []
 	property var appInfo: []
 	property var defopts: []
+
+	property var optionValuesInit: {}
+	property var optionValues: {}
 
 	SystemPalette {
 		id: colors
@@ -454,5 +477,13 @@ ApplicationWindow {
 				optionsP.gpOnB()
 				break
 		}
+	}
+
+
+
+	function resetValues() {
+		exportP.resetValues()
+		scrapeP.resetValues()
+		scrapeOneP.resetValues()
 	}
 }

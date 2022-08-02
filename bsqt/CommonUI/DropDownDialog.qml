@@ -2,60 +2,16 @@ import QtQuick 2.8
 import QtQuick.Controls 2.15
 
 Item {
-	property var btnIcon: ""
-	property string btnLabel: ""
-	property string label: ""
+	id: dropRoot
+	property var attachedTo
+	property string ddid: ""
 	property var dropDownModel: []
 
 	property bool focused: false
 	property bool above: false
-	property bool dropOn: dropMenu.visible
 
-	property var maxBtnWidth: 600
+	property int maxWidth: 600
 	property var maxDDHeight: 600
-	property var btnSpacing: 32
-
-	Text {
-		id: btnLblRowLabel
-
-		anchors.top: parent.top
-
-		width: pageWidth
-		height: parent.height
-
-		color: colors.text
-		text: label
-		wrapMode: Text.WordWrap
-
-		font.family: outfit.name
-		font.pixelSize: parent.height * 0.65
-		font.weight: Font.Light
-		verticalAlignment: Text.AlignVCenter
-	}
-
-	BsqtButton {
-		id: btnLblRowButton
-
-		anchors.right: parent.right
-		anchors.top: parent.top
-
-		width: (btnLblRowLabel.contentWidth + maxBtnWidth > parent.width) ? (parent.width - btnLblRowLabel.contentWidth - btnSpacing) : maxBtnWidth
-		height: parent.height
-
-		focus: parent.focused && !dropMenu.visible
-
-		ico: btnIcon
-		label: btnLabel
-
-		onClicked: {
-			if (!dropMenu.visible) {
-				invokeDropMenu()
-			} else {
-				hideDropMenu()
-			}
-
-		}
-	}
 
 	ListView {
 		id: dropMenu
@@ -63,10 +19,10 @@ Item {
 		property int dropTopMargin: 12
 		property int dropBotMargin: 64
 
-		width: btnLblRowButton.width
+		width: parent.width
 		height: (dropDownModel.length * 50 > root.height * root.height * 0.0004) ? root.height * root.height * 0.0004 : dropDownModel.length * 50
 
-		anchors.right: btnLblRowButton.right
+		anchors.right: parent.right
 
 		focus: parent.focused && dropMenu.visible
 		visible: false
@@ -126,13 +82,17 @@ Item {
 	}
 
 	Component.onCompleted: {
-		//dropTopMargin = 12
+		refreshAnchors()
+	}
+
+	function refreshAnchors() {
+		let dropTopMargin = 12
 		if (above) {
-			dropMenu.anchors.bottom = btnLblRowButton.top
-			//dropMenu.anchors.bottomMargin = dropTopMargin
+			dropRoot.anchors.bottom = attachedTo.top
+			dropRoot.anchors.bottomMargin = dropTopMargin
 		} else {
-			dropMenu.anchors.top = btnLblRowButton.bottom
-			//dropMenu.anchors.topMargin = dropTopMargin
+			dropRoot.anchors.top = attachedTo.bottom
+			dropRoot.anchors.topMargin = dropTopMargin
 		}
 	}
 
@@ -140,26 +100,28 @@ Item {
 
 
 
-	function invokeDropMenu() {
-		dropMenu.visible = true
-		root.hideOtherDDLR(label)
+	function invoke() {
+		dropRoot.visible = true
+		refreshAnchors()
+		console.log(attachedTo)
+		root.hideOtherDDLR(ddid)
 	}
 
-	function hideDropMenu() {
-		dropMenu.visible = false
+	function hide() {
+		dropRoot.visible = false
 	}
 
 	function simulateClick() {
 		dropMenu.currentItem.sclick()
 	}
 
-	function dropMenuGoUp() {
+	function navUp() {
 		dropMenu.currentIndex -= 1
 		if (dropMenu.currentIndex < 0)
 			dropMenu.currentIndex = dropDownModel.length - 1
 	}
 
-	function dropMenuGoDown() {
+	function navDown() {
 		dropMenu.currentIndex += 1
 		if (dropMenu.currentIndex > dropDownModel.length - 1)
 			dropMenu.currentIndex = 0
@@ -171,8 +133,8 @@ Item {
 		target: root
 
 		function onHideOtherDDLR(exclude) {
-			if (label != exclude) {
-				hideDropMenu()
+			if (ddid != exclude) {
+				hide()
 			}
 		}
 	}

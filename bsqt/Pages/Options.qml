@@ -11,6 +11,7 @@ Item {
 	anchors.fill: parent
 
 	property int gpFocus: -1
+	property bool viewCredits: false
 
 	Text {
 		id: versionInfoLabel
@@ -30,6 +31,15 @@ Item {
 		font.family: outfit.name
 		font.pixelSize: 16
 		font.weight: Font.Medium
+
+		MouseArea {
+			anchors.fill: parent
+			hoverEnabled: true
+
+			cursorShape: Qt.PointingHandCursor
+
+			onClicked: viewCredits = !viewCredits
+		}
 	}
 
 	PageTitle {
@@ -46,6 +56,17 @@ Item {
 					id: "subScraping",
 					type: "label",
 					title: "Scraping Options"
+				},
+
+				{
+					id: "module",
+					type: "multiSetting",
+					title: "Scraping Service",
+					setting: "module",
+					initialChoice: optionValuesInit["module"],
+
+					info: "Select from one of several scraping services available for you to use. Using multiple services is ideal for getting all metadata for your games, as each provides its own set of metadata.",
+					infoType: InfoModal.InfoIcon.Info
 				},
 
 				{
@@ -72,7 +93,7 @@ Item {
 					type: "setting",
 					title: "Recache Mode",
 					setting: "recache",
-					initial: defopts[4],
+					initial: defopts[3],
 
 					info: "Recache mode allows you to redownload previously scraped data, useful if a new feature is implemented that adds to scraped data.<br>It is recommended to turn this off as this uses more bandwidth than necessary, as with recache mode, you always redownload everything.",
 					infoType: InfoModal.InfoIcon.Info
@@ -98,6 +119,7 @@ Item {
 		anchors.bottomMargin: 24
 
 		width: pageWidth
+		visible: !viewCredits
 
 		anchors.right: parent.right
 		anchors.rightMargin: pageWidthOffset / 2
@@ -106,6 +128,7 @@ Item {
 		clip: true
 		focus: (currentPage == 4)
 
+		boundsBehavior: Flickable.StopAtBounds
 		keyNavigationWraps: true
 		highlightFollowsCurrentItem: true
 		highlightMoveDuration: 75
@@ -123,14 +146,14 @@ Item {
 				text: title
 
 				width: parent.width
-				height: parent.height * 0.8
+				height: parent.height
 
 				anchors.top: parent.top
 				anchors.horizontalCenter: parent.horizontalCenter
 			}
 
 			Image {
-				visible: (type == "setting" && info != "")
+				visible: (type != "label" && info != "")
 
 				id: infoIndicator
 				width: height
@@ -145,6 +168,8 @@ Item {
 
 				MouseArea {
 					anchors.fill: parent
+					hoverEnabled: true
+					cursorShape: Qt.PointingHandCursor
 					onClicked: {
 						generalInfoModal.infoIcon = infoType
 						generalInfoModal.information = info
@@ -161,7 +186,7 @@ Item {
 				width: infoIndicator.visible ? parent.width - infoIndicator.width - 16 - (anchors.rightMargin * 2) : parent.width - (anchors.rightMargin * 2)
 				height: parent.height * 0.8
 
-				focused: (index == optsView.currentIndex)
+				focused: (index == optsView.currentIndex && type == "setting")
 
 				anchors.right: parent.right
 				anchors.rightMargin: pageWidthOffset / 2
@@ -179,9 +204,87 @@ Item {
 				}
 			}
 
+			ButtonLabelRow {
+				visible: (type == "multiSetting")
+
+				id: optionModalInvoker
+				width: infoIndicator.visible ? parent.width - infoIndicator.width - 16 - (anchors.rightMargin * 2) : parent.width - (anchors.rightMargin * 2)
+				height: parent.height * 0.8
+
+				focused: (index == optsView.currentIndex && type == "multiSetting")
+
+				anchors.right: parent.right
+				anchors.rightMargin: pageWidthOffset / 2
+
+				anchors.top: parent.top
+				anchors.topMargin: parent.height * 0.1
+
+				label: title
+				btnLabel: (initialChoice ? initialChoice : "")
+
+				function pushAction() {
+					optsView.currentIndex = index
+					//console.log(optionValuesInit[setting])
+					generalSelectModal.title = "Select Scraping Module"
+					generalSelectModal.invoke(optionValues[setting])
+				}
+
+				/*
+				function pushAction() {
+					optsView.currentIndex = index
+
+					generalDropDown.width = optionDDInvoker.width
+					generalDropDown.dropDownModel = optionValues[setting]
+					generalDropDown.attachedTo = optionDDInvoker
+
+					generalDropDown.invoke()
+				}
+				*/
+			}
+
+			function selectAction(set, data) {
+				optionModalInvoker.btnLabel = data
+				root.setopt(set, data)
+			}
+
+
+
+			/*
+			DDLabelRow {
+				visible: (type == "dropSetting")
+
+				id: optionDD
+				width: infoIndicator.visible ? parent.width - infoIndicator.width - 16 - (anchors.rightMargin * 2) : parent.width - (anchors.rightMargin * 2)
+				height: parent.height * 0.8
+
+				focused: (index == optsView.currentIndex)
+
+				anchors.right: parent.right
+				anchors.rightMargin: pageWidthOffset / 2
+
+				anchors.top: parent.top
+				anchors.topMargin: parent.height * 0.1
+
+				label: title
+				btnIcon: ""//"application-menu"
+				btnLabel: optionValuesInit[setting]
+				dropDownModel: optionValues[setting]
+				above: true
+
+				function pushAction(md) {
+					btnIcon = ""
+					btnLabel = md
+				}
+			}
+			*/
+
 			function gpOnA() {
-				optionButton.btnChecked = !optionButton.btnChecked
-				optionButton.pushAction()
+				if (type == "setting") {
+					optionButton.btnChecked = !optionButton.btnChecked
+					optionButton.pushAction()
+				} else if (type == "multiSetting") {
+					optionModalInvoker.pushAction()
+				}
 			}
 
 			function gpOnB() {
@@ -210,192 +313,148 @@ Item {
 		id: generalInfoModal
 	}
 
+	SelectModal {
+		id: generalSelectModal
+
+		function dataOperation(data) {
+			optsView.currentItem.selectAction(optionEntries.get(optsView.currentIndex).setting, data)
+		}
+	}
 
 
-	/*
-	PageSubtitle {
-		id: subtitleScrapeOpts
-		text: "Scraping Options"
 
+	Flickable {
+		id: credits
 		anchors.top: optionsTitle.bottom
-		anchors.topMargin: 18
-	}
-
-	ButtonLabelRow {
-		id: sOption1
-		width: pageWidth
-		height: 48
-
-		anchors.right: parent.right
-		anchors.rightMargin: pageWidthOffset / 2
-		anchors.top: subtitleScrapeOpts.bottom
 		anchors.topMargin: 24
 
-		focused: gpFocus == 0
+		anchors.bottom: parent.bottom
+		anchors.bottomMargin: 24
 
-		label: "Video Downloads"
-		btnIcon: "checkbox"
-		btnCheckable: true
-		btnChecked: defopts[0]
+		anchors.horizontalCenter: parent.horizontalCenter
 
-		function pushAction() {
-			root.togopt("video")
-		}
-	}
+		width: pageWidth * 0.8
+		visible: viewCredits
 
-	Image {
-		id: sOption2Info
-		width: height
-		height: 48
 
-		anchors.top: sOption1.bottom
-		anchors.topMargin: 24
-		anchors.left: parent.left
-		anchors.leftMargin: pageWidthOffset / 2
 
-		source: "../res/info.png"
-		mipmap: true
+		clip: true
 
-		MouseArea {
-			anchors.fill: parent
-			onClicked: sOption2Modal.invoke()
-		}
-	}
+		contentWidth: width
+		contentHeight: creditsContainer.height
+		boundsBehavior: Flickable.StopAtBounds
 
-	ButtonLabelRow {
-		id: sOption2
-		width: pageWidth - sOption2Info.width - 16
-		height: 48
+		ScrollBar.vertical: ScrollBar { id: creditsScroll }
 
-		anchors.right: parent.right
-		anchors.rightMargin: pageWidthOffset / 2
-		anchors.top: sOption1.bottom
-		anchors.topMargin: 24
+		Column {
+			id: creditsContainer
+			width: parent.width - (creditsScroll.visible ? creditsScroll.width : 0)
+			anchors.left: parent.left
+			anchors.top: parent.top
 
-		label: "Remove 5 Minute Limit"
-		btnIcon: "checkbox"
-		btnEnable: sOption1.isCheck
+			spacing: 8
 
-		focused: gpFocus == 1
+			Text {
+				width: parent.width
+				height: contentHeight
 
-		btnCheckable: true
-		btnChecked: defopts[1]
+				anchors.left: parent.left
 
-		function pushAction() {
-			root.togopt("videoOverLimit")
-		}
-	}
+				color: colors.text
+				text: "bigscraper<b>qt</b>"
 
-	Image {
-		id: sOption3Info
-		width: height
-		height: 48
+				textFormat: Text.RichText
+				font.family: outfit.name
+				font.pixelSize: 36
 
-		anchors.top: sOption2.bottom
-		anchors.topMargin: 24
-		anchors.left: parent.left
-		anchors.leftMargin: pageWidthOffset / 2
+			}
 
-		source: "../res/info.png"
-		mipmap: true
+			Text {
+				width: parent.width
+				height: contentHeight
 
-		MouseArea {
-			anchors.fill: parent
-			onClicked: sOption3Modal.invoke()
-		}
-	}
+				anchors.left: parent.left
 
-	ButtonLabelRow {
-		id: sOption3
-		width: pageWidth - sOption2Info.width - 16
-		height: 48
+				color: colors.text
+				text: `Made By <a href="https://github.com/Fr75s">Fr75s</a>. Licensed Under the <a href="https://github.com/Fr75s/bigscraperqt/blob/main/LICENSE">GNU GPL-3.0 License</a>.
 
-		anchors.right: parent.right
-		anchors.rightMargin: pageWidthOffset / 2
-		anchors.top: sOption2.bottom
-		anchors.topMargin: 24
+				<br><br><br>
+				Scraping Services Used:
 
-		label: "Recache Mode"
-		btnIcon: "checkbox"
+				<br><br>
+				<b>LaunchBox</b><br>
+				Copyright © <a href="https://www.unbrokensoftware.com/">Unbroken Software, LLC</a>.<br>
+				<a href="https://www.launchbox-app.com/">Website</a>
 
-		focused: gpFocus == 2
+				<br><br>
+				<b>Arcade Database</b><br>
+				Made By motoschifo.<br>
+				<a href="http://adb.arcadeitalia.net/">Website</a>
 
-		btnCheckable: true
-		btnChecked: defopts[4]
+				`
+				/*, /*<a href="https://gamesdb.launchbox-app.com/">Database</a>*/
 
-		function pushAction() {
-			root.togopt("recache")
-		}
-	}
+				textFormat: Text.RichText
+				wrapMode: Text.WordWrap
+				font.family: outfit.name
+				font.pixelSize: 18
+				font.weight: Font.Medium
 
-	PageSubtitle {
-		id: subtitleInterOpts
-		text: "Interface Options"
-
-		anchors.top: sOption2.bottom
-		anchors.topMargin: 36
-	}
-
-	ButtonLabelRow {
-		id: iOption1
-		width: pageWidth
-		height: 48
-
-		anchors.right: parent.right
-		anchors.rightMargin: pageWidthOffset / 2
-		anchors.top: subtitleInterOpts.bottom
-		anchors.topMargin: 24
-
-		label: "Transparent Navigation Bar"
-		btnIcon: "checkbox"
-		btnCheckable: true
-		btnChecked: defopts[3]
-
-		function pushAction() {
-			root.togopt("glassyTitle")
-			blurTitlebar = !blurTitlebar
+				onLinkActivated: Qt.openUrlExternally(link)
+			}
 		}
 	}
 
 
-
-	InfoModal {
-		id: sOption2Modal
-		infoIcon: InfoModal.InfoIcon.Warning
-		information: "If you turn off this option, there is a high chance that you may download a video that's hours long. Many games that have videos on Launchbox have videos of longplays and the like; even common games may have videos up to 7 hours long. It is best to turn off this option, but if your network can handle it and you have the patience, it is here for you to turn off.<br><br>Note that if you turn on this option, be aware that bigscraper-qt doesn't track video download progress in the GUI. You will need to open it from the terminal to see yt-dlp's output."
-	}
-
-	InfoModal {
-		id: sOption3Modal
-		infoIcon: InfoModal.InfoIcon.Info
-		information: "Recache mode allows you to redownload previously scraped data, useful if a new feature is implemented that adds to scraped data.<br>It is recommended to turn this off as this uses more bandwidth than necessary, as with recache mode, you always redownload everything."
-	}
-	*/
 
 
 
 	function gpOnUp() {
-		optsView.decrementCurrentIndex()
-		while (optsView.currentItem.skip == true) {
+		if (generalSelectModal.invoked) {
+			generalSelectModal.dropMenuGoUp()
+		} else {
 			optsView.decrementCurrentIndex()
+			while (optsView.currentItem.skip == true) {
+				optsView.decrementCurrentIndex()
+			}
 		}
 	}
 
 	function gpOnDown() {
-		optsView.incrementCurrentIndex()
-		while (optsView.currentItem.skip == true) {
+		if (generalSelectModal.invoked) {
+			generalSelectModal.dropMenuGoDown()
+		} else {
 			optsView.incrementCurrentIndex()
+			while (optsView.currentItem.skip == true) {
+				optsView.incrementCurrentIndex()
+			}
 		}
 	}
 
+	function gpOnRUp() {
+		if (generalSelectModal.invoked)
+			generalSelectModal.dropMenuGoUp()
+	}
+
+	function gpOnRDown() {
+		if (generalSelectModal.invoked)
+			generalSelectModal.dropMenuGoDown()
+	}
+
 	function gpOnA() {
-		optsView.currentItem.gpOnA()
+		if (generalSelectModal.invoked)
+			generalSelectModal.simulateClick()
+		else if (generalInfoModal.invoked)
+			generalInfoModal.close()
+		else
+			optsView.currentItem.gpOnA()
 	}
 
 	function gpOnB() {
-		optsView.currentItem.gpOnB()
+		if (generalInfoModal.invoked)
+			generalInfoModal.close()
+		else
+			optsView.currentItem.gpOnB()
 	}
-
-
 }
 

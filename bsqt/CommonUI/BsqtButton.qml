@@ -68,6 +68,8 @@ Button {
 		propagateComposedEvents: true
 		hoverEnabled: true
 
+		cursorShape: Qt.PointingHandCursor
+
 		onPressed: parent.clicked()
 	}
 }

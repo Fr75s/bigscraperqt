@@ -32,7 +32,7 @@ Rectangle {
 
 		color: colors.window
 
-		radius: 48
+		radius: 24
 
 		Image {
 			width: height
@@ -98,9 +98,11 @@ Rectangle {
 
 	function invoke() {
 		visible = true
+		invoked = true
 	}
 
 	function close() {
+		invoked = false
 		visible = false
 	}
 }

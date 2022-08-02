@@ -67,6 +67,7 @@ document.getElementById("footer").innerHTML = `
 	<br>
 	<a href="https://github.com/Fr75s/bigscraperqt">Source Code</a>
 	<a href="https://discord.gg/DUAFMgrhAY">Discord (Support)</a>
+	<a href="credits/index.html">Credits</a>
 	</p>
 
 </div>

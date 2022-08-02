@@ -8,7 +8,7 @@ Text {
 	anchors.rightMargin: pageWidthOffset / 2
 
 	horizontalAlignment: Text.AlignLeft
-	verticalAlignment: Text.AlignVCenter
+	verticalAlignment: Text.AlignBottom
 
 	color: colors.text
 	text: "_"

@@ -28,12 +28,32 @@
 
       <ul>
         <li><a href="#starter">Starter Example</a></li>
+        <br>
         <li><a href="#commands">Launch Commands</a>
           <ul>
             <li><a href="#commands-retroarch">Retroarch</a></li>
             <li><a href="#commands-common">Other Common Emulators</a></li>
             <li><a href="#commands-difinstall">Different Installations</a></li>
             <li><a href="#commands-custom">Custom Commands</a></li>
+          </ul>
+        </li>
+        <br>
+        <li><a href="#modulesandexports">Modules &amp; Exports</a>
+          <ul>
+            <li><a href="#mae-changing-modules">Change Module</a></li>
+            <li><a href="#mae-changing-exports">Change Export</a></li>
+            <li><a href="#mae-modules">Modules</a>
+              <ul>
+                <li><a href="#mae-modules-launchbox">LaunchBox</a></li>
+                <li><a href="#mae-modules-adb">Arcade Database</a></li>
+              </ul>
+            </li>
+            <li><a href="#mae-exports">Export Formats</a>
+              <ul>
+                <li><a href="#mae-exports-pegasus">Pegasus</a></li>
+                <li><a href="#mae-exports-es">EmulationStation</a></li>
+              </ul>
+            </li>
           </ul>
         </li>
         <br>
@@ -79,7 +99,7 @@
 
       <img class="gallery" style="margin: 2rem auto 3rem auto;" src="guide_3.png"/>
 
-      <p>Once in the export tab, we will set the 2 options. Simply set the export folder the same way as you did when scraping, choosing the folder with your games. Then, set the system to Nintendo Switch once again. It should look like below:</p>
+      <p>Once in the export tab, we will set the 3 options. Simply set the export folder the same way as you did when scraping, choosing the folder with your games. Then, set the system to Nintendo Switch once again. Then, you need to set the export type to "Pegasus Frontend," as we're exporting for it. It should look like below:</p>
 
       <img class="gallery" style="margin: 2rem auto 3rem auto;" src="guide_4.png"/>
 
@@ -273,6 +293,84 @@
 
 
 
+
+
+      <h2 id="modulesandexports" class="split">Modules &amp; Exports</h2>
+      <p>As of bigscraper-qt v1.3.0, a number of different scraping modules and export formats are available. Details about each scraping module and export format is listed below.</p>
+
+      <h3 id="mae-changing-modules" class="left splitlite bold">Change Scraping Module</h3>
+      <p>To change your scraping module, first navigate to the settings page, and locate the option "Scraping Module" (located near the top of the settings)</p>
+
+      <p>Click on the button for the option, and choose your desired scraping module. This sets you up to scrape using that module.</p>
+
+      <h3 id="mae-changing-exports" class="left splitlite bold">Change Export Format</h3>
+      <p>Changing your export format can be done upon exporting metadata. After navigating to the exports page, find the "Export Type" button. Simply select a format, and you may now export with that format.</p>
+
+
+
+      <h3 id="mae-modules" class="left splitmid bold">List of Modules</h3>
+      <p>Bigscraper-qt's scraping modules are the services that provide metadata for your games. Each one has its own advantages and disadvantages, and may be preferable over the others.</p>
+
+      <p>Note that when changing each scraping module with recache mode on (to be able to scrape one game with multiple sources), every scrape overrides data from the previous scrape, replacing all metadata and all found images (images that remain stay the same). This means that <b>your most preferred scraping module should be used last</b>.</p>
+
+      <h4 id="mae-modules-launchbox" class="left splitlite bold">LaunchBox</h4>
+      <p>
+        <a href="https://gamesdb.launchbox-app.com/">Website</a><br>
+      </p>
+      <p>
+        LaunchBox is the primary scraping module for bigscraper-qt, supporting all systems. Bigscraper-qt added support for LaunchBox in version 1.0.0.
+        <br><br>
+        LaunchBox has the highest support for systems, covering all available systems. All common systems are available to scrape on LaunchBox.
+        <br><br>
+        As LaunchBox is the only module without a dedicated API for scraping, scraping requires much more work. Because of this, it takes more requests to get each game; with enough games, LaunchBox may halt requests to your device temporarily. It's best not to use LaunchBox if you're scraping over 50 games at once. <a href="#lb-scraping-process">More information about the scraping process is here.</a>
+        <br><br>
+        The Metadata provided by LaunchBox is great, providing many details and clear images for most games. LaunchBox provides a large variety of images, from box art to logos to physical media.
+      </p>
+
+      <h4 id="mae-modules-adb" class="left splitlite bold">Arcade Database (ADB)</h4>
+      <p>
+        <a href="http://adb.arcadeitalia.net/default.php">Website</a><br>
+      </p>
+      <p>
+        Arcade Database is a scraping module that should be used primarily for arcade games, as it supports nothing else. Bigscraper-qt added support for ADB in version 1.3.0.
+        <br><br>
+        Arcade Database is perfect for scraping arcade games, as while it may not provide as much metadata others may provide, what it does provide is high quality material. Scraping with Arcade Database is quick, and requires few requests.
+        <br><br>
+        Arcade Database requires you to name your games with short romset names, e.g. <code>dkong.zip</code>. To find the romset name for your games, <a href="http://adb.arcadeitalia.net/lista_mame.php">use this website to search the name of the game.</a>
+      </p>
+
+
+
+      <h3 id="mae-exports" class="left splitmid bold">List of Export Formats</h3>
+      <p>Bigscraper-qt's export formats format your metadata in a form usable by external frontends. These frontends display your games' metadata in a presentable way.</p>
+
+      <p>When exporting, you may choose to use as many export formats as you wish, as export formats do not override each other. Each export format will use the same media folder, but different metadata documents.</p>
+
+      <h4 id="mae-exports-pegasus" class="left splitlite bold">Pegasus</h4>
+      <p>
+        <a href="https://pegasus-frontend.org/">Website</a><br>
+      </p>
+      <p>
+        Pegasus frontend is a highly customizable frontend tool that allows you to load QML-based themes. Bigscraper-qt added support for Pegasus in version 1.0.0.
+        <br><br>
+        Exporting to Pegasus generates a metadata.pegasus.txt document, as well as a media folder. Note that launch commands are not automatically added: Please refer to <a href="#commands">the launch command section</a> to find out how to get proper launch commands.
+      </p>
+
+      <h4 id="mae-exports-es" class="left splitlite bold">EmulationStation</h4>
+      <p>
+        <a href="https://github.com/Aloshi/EmulationStation">Website</a><br>
+      </p>
+      <p>
+        EmulationStation frontend is a common frontend which is highly configurable and which has several forks, notably EmulationStation Desktop Edition (ES-DE). Bigscraper-qt added support for EmulationStation in version 1.3.0.
+        <br><br>
+        Exporting to EmulationStation generates a gamelist.xml file, defining the games for a system. This copies over the front box art and the video of the game to the media folder, generated adjacent to the gamelist.xml file.
+      </p>
+
+
+
+
+
+
       <h2 id="scraping" class="split">Scraping</h2>
       <p>Scraping is the way in which data is gathered for bigscraper-qt.</p>
 
@@ -292,8 +390,8 @@
       <p>Please note that when scraping a folder, all games need to be for the same system. As well, scraping all folders with games at once is impossible with bigscraper-qt.</p>
 
 
-      <h3 class="left splitmid">The Scraping Process</h3>
-      <p>Here, I will describe how exactly games are scraped, so that you can know how bigscraper-qt finds games from LaunchBox.</p>
+      <h3 id="lb-scraping-process" class="left splitmid">LaunchBox Scraping Process</h3>
+      <p>Here, I will describe how exactly games are scraped from LaunchBox, so that you can know how bigscraper-qt finds games from it.</p>
 
       <p>First, bigscraper-qt notes the game file selected and system. It trims the extensions of the game name, formatting it to a common format to remove ambiguity. Then, based on the system name, the ID of the system used by the LaunchBox database is acquired from a hand-written object.</p>
 
@@ -310,7 +408,7 @@
       <h2 id="exporting" class="split">Exporting</h2>
       <p>Exporting is how data is compiled into a format usable by emulator frontends.</p>
 
-      <p>When exporting, you have 2 options. One is the folder to export to, and one is the system whose game data will be exported to this folder. Exporting data will create the metadata file for the system, as well as a media folder containing the media files for games.</p>
+      <p>When exporting, you have 3 options. One is the folder to export to, one is the system whose game data will be exported to this folder, and one is the <a href="#mae-exports">export format. </a>Exporting data will create the metadata file for the system, as well as a media folder containing the media files for games.</p>
 
 
 

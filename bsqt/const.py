@@ -1,4 +1,4 @@
-import os, sys, datetime, unidecode
+import os, sys, json, datetime, unidecode
 from xdg import xdg_data_home, xdg_config_home
 from yt_dlp import YoutubeDL
 
@@ -7,10 +7,10 @@ from PyQt5.QtCore import *
 ## Genral Information
 info = {
 	"NAME": "bigscraper-qt",
-	"VERSION": "1.2.0",
+	"VERSION": "1.3.0",
 	"AUTHOR": "Fr75s",
 	"LICENSE": "GPLv3",
-	"URL": ""
+	"URL": "https://fr75s.github.io/bigscraperqt/"
 }
 
 version_info = info["NAME"] + " v" + info["VERSION"] + ". Made by " + info["AUTHOR"] + ". Licensed under " + info["LICENSE"]
@@ -22,6 +22,7 @@ paths = {
 	"METADATA": os.path.join(xdg_data_home(), "bigscraper-qt/metadata/"),
 	"MEDIA": os.path.join(xdg_data_home(), "bigscraper-qt/media/"),
 	"LOGS": os.path.join(xdg_data_home(), "bigscraper-qt/logs/"),
+	"EXTRA": os.path.join(xdg_data_home(), "bigscraper-qt/extra/"),
 	"OPTS": os.path.join(xdg_config_home(), "bigscraper-qt/"),
 	"HOME": os.path.expanduser("~")
 }
@@ -89,6 +90,11 @@ def trimext(text):
 
 	return text
 
+# Filter Escape Characters
+# (currently only removes \r and \n, and converts other escaped characters)
+def filter_escapes(text):
+	return text.replace("\\r","").replace("\\n","").replace("\\\\","\\").replace("\\","")
+
 def video_len_test(info, *, incomplete):
 	video_duration = info.get("duration")
 	if video_duration and video_duration > VIDEO_LEN_LIMIT:
@@ -107,15 +113,57 @@ def download_video(url, options):
 options = {
 	"video": True,
 	"videoOverLimit": False,
-	"region": "na",
 	"glassyTitle": True,
-	"recache": False
+	"recache": False,
 }
 
+#
+# SCRAPING MODULES
+# Currently Implemented:
+#
+# LaunchBox
+# --Arcade Database (adb) soon--
+#
+
+optionsVary = {
+	"region": "North America",
+	"module": "LaunchBox"
+}
+
+def merged_options():
+	return {**options, **optionsVary}
+
+def save_options():
+	merge_options = merged_options()
+
+	options_json = json.dumps(merge_options, indent = 4)
+	open(os.path.join(paths["OPTS"], "options.json"), "w").write(options_json)
+	log("Saved Options to File", "D", True)
+
+
+optionValues = {
+	"region": ["North America", "Europe", "Japan"],
+	"module": ["LaunchBox", "Arcade Database"]
+}
+
+#optionValues_region = {
+	#"North America": "na",
+	#"Europe": "eu",
+	#"Japan": "jp"
+#}
+
+#optionValues_module = {
+	#"LaunchBox": "lb",
+	#"Arcade Database": "ad"
+#}
+
+
+
+
 regions = {
-	"na": ["(North America)", "(United States)", "(Canada)", "(World)"],
-	"eu": ["(Europe)", "(United Kingdom)", "(Germany)", "(France)", "(Spain)", "(Italy)", "(The Netherlands)", "(Russia)", "(World)"],
-	"jp": ["(Japan)", "(World)", ""]
+	"North America": ["(North America)", "(United States)", "(Canada)", "(World)"],
+	"Europe": ["(Europe)", "(United Kingdom)", "(Germany)", "(France)", "(Spain)", "(Italy)", "(The Netherlands)", "(Russia)", "(World)"],
+	"Japan": ["(Japan)", "(World)", ""]
 }
 
 ## Handle Flags
@@ -183,8 +231,18 @@ calendar_month = {
 	"December": "12"
 }
 
+ad_arts = {
+	"image_ingame": ["Screenshot - Gameplay"],
+	"image_title": ["Screenshot - Game Title", "Box - Front"],
+	"image_marquee": ["Arcade - Marquee"],
+	"image_cabinet": ["Arcade - Cabinet"],
+	"image_flyer": ["Advertisement Flyer - Front"],
+}
+
 # Art title to Pegasus Format
 pegasus_artconv = {
+	"Arcade - Marquee": ["marquee"],
+	"Advertisement Flyer - Front": ["poster"],
 	"Box - Front": ["boxFront"],
 	"Box - Back": ["boxBack"],
 	"Clear Logo": ["logo", "wheel"],
@@ -207,102 +265,114 @@ nongame_extensions = [
 	".cue"
 ]
 
-# Converting system names to abbreviations
-convert = {
-	"3DO Interactive Multiplayer": "3do",
-    "Amstrad CPC": "amstradcpc",
-    "Android": "android",
-    "Apple II": "apple2",
-    "Apple IIGS": "apple2gs",
-    "Apple iOS": "ios",
-    "Apple Mac OS": "macintosh",
-    "Arcade": "arcade",
-    "Atari 2600": "atari2600",
-    "Atari 5200": "atari5200",
-    "Atari 7800": "atari7800",
-    "Atari Jaguar": "atarijaguar",
-    "Atari Jaguar CD": "atarijaguarcd",
-    "Atari Lynx": "atarilynx",
-    "Atari ST": "atarist",
-    "Atari XEGS": "atarixe",
-    "Bally Astrocade": "astrocade",
-    "BBC Microcomputer System": "bbcmicro",
-    "Camputers Lynx": "camputerslynx",
-    "Coleco ADAM": "adam",
-    "ColecoVision": "colecovision",
-    "Commodore 128": "c128",
-    "Commodore 64": "c64",
-    "Commodore Amiga": "amiga",
-    "Commodore Amiga CD32": "amigacd32",
-    "Commodore CDTV": "amigacdtv",
-    "Commodore VIC-20": "vic20",
-    "Entex Adventure Vision": "advision",
-    "Fairchild Channel F": "channelf",
-    "GCE Vectrex": "vectrex",
-    "Linux": "linux",
-    "Magnavox Odyssey": "odyssey",
-    "Magnavox Odyssey 2": "odyssey2",
-    "Mattel Intellivision": "intellivision",
-    "Memotech MTX512": "mxt512",
-    "Microsoft DOS": "dos",
-    "Microsoft MSX": "msx",
-    "Microsoft MSX2": "msx2",
-    "Microsoft Xbox": "xbox",
-    "Microsoft Xbox 360": "xbox360",
-    "Microsoft Xbox One": "xboxone",
-    "NEC PC-Engine": "pcengine",
-    "NEC TurboGrafx CD": "turbografxcd",
-    "NEC TurboGrafx-16": "turbografx16",
-    "Nintendo 3DS": "3ds",
-    "Nintendo 64": "n64",
-    "Nintendo 64DD": "64dd",
-    "Nintendo DS": "nds",
-    "Nintendo Entertainment System": "nes",
-    "Nintendo Famicom Disk System": "fds",
-    "Nintendo Game & Watch": "gameandwatch",
-    "Nintendo Game Boy": "gb",
-    "Nintendo Game Boy Advance": "gba",
-    "Nintendo Game Boy Color": "gbc",
-    "Nintendo GameCube": "gc",
-    "Nintendo Switch": "switch",
-    "Nintendo Virtual Boy": "virtualboy",
-    "Nintendo Wii": "wii",
-    "Nintendo Wii U": "wiiu",
-    "Ouya": "ouya",
-    "Philips CD-i": "cdi",
-    "Sega 32X": "sega32x",
-    "Sega CD": "segacd",
-    "Sega Dreamcast": "dreamcast",
-    "Sega Game Gear": "gamegear",
-    "Sega Genesis": "genesis",
-    "Sega Master System": "mastersystem",
-    "Sega Mega Drive": "megadrive",
-    "Sega Naomi": "naomi",
-    "Sega Saturn": "saturn",
-    "Sega SG-1000": "sg1000",
-    "Sinclair ZX Spectrum": "zxspectrum",
-    "SNK Neo Geo AES": "neogeo",
-    "SNK Neo Geo Pocket": "ngp",
-    "SNK Neo Geo Pocket Color": "ngpc",
-    "Sony Playstation": "psx",
-    "Sony Playstation 2": "ps2",
-    "Sony Playstation 3": "ps3",
-    "Sony Playstation 4": "ps4",
-    "Sony Playstation Vita": "psvita",
-    "Sony PSP": "psp",
-    "Super Nintendo Entertainment System": "snes",
-    "Texas Instruments TI 99/4A": "ti99",
-    "Tiger Game.com": "gamecom",
-    "Windows": "windows",
-    "WonderSwan": "wonderswan",
-    "WonderSwan Color": "wonderswancolor"
+
+#
+# Systems
+#
+
+# List of ADB systems
+systems_ad = {
+	"Arcade": "arcade"
 }
 
-# Converting system abbreviations to names
-convert_rev = {val: key for key, val in convert.items()}
+# List of LaunchBox systems and system ids
+systems = {
+	"Arcade Database": {
+		"Arcade": "arcade"
+	},
+	"LaunchBox": {
+		"3DO Interactive Multiplayer": "3do",
+		"Amstrad CPC": "amstradcpc",
+		"Android": "android",
+		"Apple II": "apple2",
+		"Apple IIGS": "apple2gs",
+		"Apple iOS": "ios",
+		"Apple Mac OS": "macintosh",
+		"Arcade": "arcade",
+		"Atari 2600": "atari2600",
+		"Atari 5200": "atari5200",
+		"Atari 7800": "atari7800",
+		"Atari Jaguar": "atarijaguar",
+		"Atari Jaguar CD": "atarijaguarcd",
+		"Atari Lynx": "atarilynx",
+		"Atari ST": "atarist",
+		"Atari XEGS": "atarixe",
+		"Bally Astrocade": "astrocade",
+		"BBC Microcomputer System": "bbcmicro",
+		"Camputers Lynx": "camputerslynx",
+		"Coleco ADAM": "adam",
+		"ColecoVision": "colecovision",
+		"Commodore 128": "c128",
+		"Commodore 64": "c64",
+		"Commodore Amiga": "amiga",
+		"Commodore Amiga CD32": "amigacd32",
+		"Commodore CDTV": "amigacdtv",
+		"Commodore VIC-20": "vic20",
+		"Entex Adventure Vision": "advision",
+		"Fairchild Channel F": "channelf",
+		"GCE Vectrex": "vectrex",
+		"Linux": "linux",
+		"Magnavox Odyssey": "odyssey",
+		"Magnavox Odyssey 2": "odyssey2",
+		"Mattel Intellivision": "intellivision",
+		"Memotech MTX512": "mxt512",
+		"Microsoft DOS": "dos",
+		"Microsoft MSX": "msx",
+		"Microsoft MSX2": "msx2",
+		"Microsoft Xbox": "xbox",
+		"Microsoft Xbox 360": "xbox360",
+		"Microsoft Xbox One": "xboxone",
+		"NEC PC-Engine": "pcengine",
+		"NEC TurboGrafx CD": "turbografxcd",
+		"NEC TurboGrafx-16": "turbografx16",
+		"Nintendo 3DS": "3ds",
+		"Nintendo 64": "n64",
+		"Nintendo 64DD": "64dd",
+		"Nintendo DS": "nds",
+		"Nintendo Entertainment System": "nes",
+		"Nintendo Famicom Disk System": "fds",
+		"Nintendo Game & Watch": "gameandwatch",
+		"Nintendo Game Boy": "gb",
+		"Nintendo Game Boy Advance": "gba",
+		"Nintendo Game Boy Color": "gbc",
+		"Nintendo GameCube": "gc",
+		"Nintendo Switch": "switch",
+		"Nintendo Virtual Boy": "virtualboy",
+		"Nintendo Wii": "wii",
+		"Nintendo Wii U": "wiiu",
+		"Ouya": "ouya",
+		"Philips CD-i": "cdi",
+		"Sega 32X": "sega32x",
+		"Sega CD": "segacd",
+		"Sega Dreamcast": "dreamcast",
+		"Sega Game Gear": "gamegear",
+		"Sega Genesis": "genesis",
+		"Sega Master System": "mastersystem",
+		"Sega Mega Drive": "megadrive",
+		"Sega Naomi": "naomi",
+		"Sega Saturn": "saturn",
+		"Sega SG-1000": "sg1000",
+		"Sinclair ZX Spectrum": "zxspectrum",
+		"SNK Neo Geo AES": "neogeo",
+		"SNK Neo Geo Pocket": "ngp",
+		"SNK Neo Geo Pocket Color": "ngpc",
+		"Sony Playstation": "psx",
+		"Sony Playstation 2": "ps2",
+		"Sony Playstation 3": "ps3",
+		"Sony Playstation 4": "ps4",
+		"Sony Playstation Vita": "psvita",
+		"Sony PSP": "psp",
+		"Super Nintendo Entertainment System": "snes",
+		"Texas Instruments TI 99/4A": "ti99",
+		"Tiger Game.com": "gamecom",
+		"Windows": "windows",
+		"WonderSwan": "wonderswan",
+		"WonderSwan Color": "wonderswancolor"
+	}
+}
 
-# Converting system abbreviations to IDs used by Launchbox
-cv_id = {
+# LaunchBox systems to ID numbers
+lb_sysid = {
 	"3do": "1",
 	"amiga": "2",
 	"amstradcpc": "3",

@@ -194,4 +194,10 @@ Item {
 			systemSelect.hideDropMenu()
 	}
 
+
+
+	function resetValues() {
+		chosenSystem = ""
+	}
+
 }

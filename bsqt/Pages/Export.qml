@@ -14,7 +14,7 @@ Item {
 
 	property var chosenFolder: ""
 	property var chosenSystem: ""
-	property var chosenExport: "pegasus"
+	property var chosenExport: ""
 
 	property int gpFocus: -1
 
@@ -91,6 +91,33 @@ Item {
 			chosenSystem = md
 			root.log("Selected System (" + md + ")")
 		}
+
+		z: 30
+	}
+
+	DDLabelRow {
+		id: exportSelect
+		width: pageWidth
+		height: 48
+
+		anchors.right: parent.right
+		anchors.rightMargin: pageWidthOffset / 2
+		anchors.top: systemSelect.bottom
+		anchors.topMargin: 24
+
+		focused: gpFocus == 2
+
+		label: "Export Type"
+		btnIcon: (chosenExport == "") ? "export-symbolic" : ""
+		btnLabel: chosenExport
+		dropDownModel: exportData
+
+		function pushAction(md) {
+			chosenExport = md
+			root.log("Selected Export (" + md + ")")
+		}
+
+		z: 20
 	}
 
 
@@ -101,7 +128,7 @@ Item {
 		anchors.bottom: parent.bottom
 		anchors.bottomMargin: 48
 
-		focus: gpFocus == 2
+		focus: gpFocus == 3
 
 		anchors.left: parent.left
 		anchors.leftMargin: sidebarWidth + pageWidthOffset / 2
@@ -159,6 +186,8 @@ Item {
 	function gpOnUp() {
 		if (gpFocus == 1 && systemSelect.dropOn) {
 			systemSelect.dropMenuGoUp()
+		} else if (gpFocus == 2 && exportSelect.dropOn) {
+			exportSelect.dropMenuGoUp()
 		} else {
 			gpFocus -= 1
 			if (gpFocus < 0)
@@ -169,22 +198,28 @@ Item {
 	function gpOnDown() {
 		if (gpFocus == 1 && systemSelect.dropOn) {
 			systemSelect.dropMenuGoDown()
+		} else if (gpFocus == 2 && exportSelect.dropOn) {
+			exportSelect.dropMenuGoDown()
 		} else {
 			gpFocus += 1
-			if (gpFocus > 2)
-				gpFocus = 2
+			if (gpFocus > 3)
+				gpFocus = 3
 		}
 	}
 
 	function gpOnRUp() {
 		if (gpFocus == 1 && systemSelect.dropOn) {
 			systemSelect.dropMenuGoUp()
+		} else if (gpFocus == 2 && exportSelect.dropOn) {
+			exportSelect.dropMenuGoUp()
 		}
 	}
 
 	function gpOnRDown() {
 		if (gpFocus == 1 && systemSelect.dropOn) {
 			systemSelect.dropMenuGoDown()
+		} else if (gpFocus == 2 && exportSelect.dropOn) {
+			exportSelect.dropMenuGoDown()
 		}
 	}
 
@@ -200,7 +235,13 @@ Item {
 					systemSelect.invokeDropMenu()
 				break
 			case 2:
-				if (chosenFolder != "" && chosenSystem != "" && chosenExport != "") {
+				if (exportSelect.dropOn)
+					exportSelect.simulateClick()
+				else
+					exportSelect.invokeDropMenu()
+				break
+			case 3:
+				if (chosenFolder != "" && systemData.includes(chosenSystem) && exportData.includes(chosenExport)) {
 					working = true;
 					runtask(3, chosenFolder + ";;;" + chosenSystem + ";;;" + chosenExport);
 				}
@@ -211,6 +252,15 @@ Item {
 	function gpOnB() {
 		if (gpFocus == 1 && systemSelect.dropOn)
 			systemSelect.hideDropMenu()
+		else if (gpFocus == 2 && exportSelect.dropOn)
+			exportSelect.hideDropMenu()
+	}
+
+
+
+	function resetValues() {
+		chosenSystem = ""
+		chosenExport = ""
 	}
 
 }

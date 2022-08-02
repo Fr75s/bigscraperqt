@@ -50,7 +50,7 @@ class ProcessWorker(QObject):
 			log("Begin Task: Scrape One Game", "I")
 			log("-----")
 
-			self.t = ScrOneTask(self.task_data, options)
+			self.t = ScrOneTask(self.task_data, merged_options())
 			self.t.out.connect(self.report_progress)
 			self.t.bar.connect(self.progress_bar)
 			self.t.complete.connect(self.done)
@@ -61,7 +61,7 @@ class ProcessWorker(QObject):
 			log("Begin Task: Scrape Folder", "I")
 			log("-----")
 
-			self.t = ScrapeTask(self.task_data, options)
+			self.t = ScrapeTask(self.task_data, merged_options())
 			self.t.out.connect(self.report_progress)
 			self.t.bar.connect(self.progress_bar)
 			self.t.complete.connect(self.done)
@@ -72,7 +72,7 @@ class ProcessWorker(QObject):
 			log("Begin Task: Export", "I")
 			log("-----")
 
-			self.t = ExportTask(self.task_data, options)
+			self.t = ExportTask(self.task_data, merged_options())
 			self.t.out.connect(self.report_progress)
 			self.t.bar.connect(self.progress_bar)
 			self.t.complete.connect(self.done)
@@ -223,7 +223,7 @@ class MainAppBackend(QObject):
 	progressBar = pyqtSignal(list)
 
 	# Send data to QML (list: data, int: type)
-	sendSystemsData = pyqtSignal(list, int)
+	sendSystemsData = pyqtSignal("QVariant", int)
 
 	# Send input to QML (string: input, bool: value)
 	inputEvent = pyqtSignal(str, bool)
@@ -234,23 +234,48 @@ class MainAppBackend(QObject):
 	def on_load(self):
 		# Send Data
 		log("QML Loaded", "I")
-		self.sendSystemsData.emit(list(convert.keys()), 0)
+		self.sendSystemsData.emit(list(systems[optionsVary["module"]].keys()), 0)
 		self.sendSystemsData.emit(list(explats.keys()), 1)
 		self.sendSystemsData.emit(list(options.values()), 2)
 		self.sendSystemsData.emit([in_flatpak], 3)
 		self.sendSystemsData.emit(list(info.values()), 4)
+		self.sendSystemsData.emit(optionsVary, 5)
+		self.sendSystemsData.emit(optionValues, 6)
 
 		self.input_thread = InputWorker()
 
 		self.input_thread.start()
 		self.input_thread.input_event.connect(self.send_input_event)
 
+
+	def send_single_data(self, data, index):
+		log(f"Sending data to QML with index {index}")
+		self.sendSystemsData.emit(data, index)
+
+
 	def toggle_option(self, option):
 		options[option] = not(options[option])
 		log("Changed " + option + " to " + str(options[option]), "O")
 
-		options_json = json.dumps(options, indent = 4)
-		open(os.path.join(paths["OPTS"], "options.json"), "w").write(options_json)
+		save_options()
+
+	def set_option(self, option, value):
+		optionsVary[option] = value
+		log("Changed " + option + " to " + str(optionsVary[option]), "O")
+
+		# Individual Option Actions
+		if option == "module":
+			self.send_single_data(list(systems[optionsVary["module"]].keys()), 0)
+
+		save_options()
+
+
+	def send_input_event(self, input_event, val):
+		self.inputEvent.emit(input_event, val)
+
+	def restart_input_thread(self):
+		self.input_thread.start()
+
 
 	def run_task(self, taskID, taskData):
 		# Init worker
@@ -300,11 +325,9 @@ class MainAppBackend(QObject):
 
 		self.progressBar.emit([action, pre, end])
 
+
 	def log_qml(self, msg):
 		log(msg, "U")
-
-	def send_input_event(self, input_event, val):
-		self.inputEvent.emit(input_event, val)
 
 
 def init_filesystem():
@@ -321,20 +344,18 @@ def init_filesystem():
 	if os.path.isfile(os.path.join(paths["OPTS"], "options.json")):
 		log("Reading options file", "I")
 		options_file = json.load(open(os.path.join(paths["OPTS"], "options.json")))
-		# If there are changes to options, ensure they are confirmed
-		if (len(options_file.keys()) == len(options.keys())):
-			options = options_file
-		else:
-			for opt in options_file.keys():
-				if opt in options:
-					options[opt] = options_file[opt]
-			options_json = json.dumps(options, indent = 4)
-			open(os.path.join(paths["OPTS"], "options.json"), "w").write(options_json)
+
+		# Go through each option to put each in correct options
+		for opt in options_file.keys():
+			if opt in options:
+				options[opt] = options_file[opt]
+			elif opt in optionsVary:
+				optionsVary[opt] = options_file[opt]
+		save_options()
 
 	else:
 		log("Creating options file", "I")
-		options_json = json.dumps(options, indent = 4)
-		open(os.path.join(paths["OPTS"], "options.json"), "w").write(options_json)
+		save_options()
 
 
 
@@ -367,6 +388,7 @@ def main():
 	root.runtask.connect(backend.run_task)
 	root.doneloading.connect(backend.on_load)
 	root.togopt.connect(backend.toggle_option)
+	root.setopt.connect(backend.set_option)
 	root.log.connect(backend.log_qml)
 
 	sys.exit(app.exec())
