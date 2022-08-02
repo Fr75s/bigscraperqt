@@ -185,9 +185,11 @@ if ("-h" in sys.argv or "-?" in sys.argv or "--help" in sys.argv):
 	print("For general help, visit the guide: https://fr75s.github.io/bigscraperqt/guide/index.html\n")
 
 	print("Flag Help:")
-	print("-n\tForce Native UI")
-	print("-d\tPrint Debug-level logs to stdout")
-	print("--nolog\tDo not generate log files")
+	print("-n\t\tForce Native UI")
+	print("-d\t\tPrint Debug-level logs to stdout")
+	print("--nolog\t\tDo not generate log files")
+
+	print("-style [style]\tUse a different Qt Style (built into PyQt, but useful)")
 
 	sys.exit()
 
