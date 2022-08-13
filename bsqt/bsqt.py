@@ -8,6 +8,7 @@ import os, sys, json, shutil, inputs
 from yt_dlp import YoutubeDL
 
 from .const import *
+from .resources import *
 
 from .deftask import DefTask
 from .scrapeone import ScrOneTask
@@ -373,13 +374,13 @@ def main():
 	app.setApplicationName(info["NAME"])
 	app.setApplicationVersion(info["VERSION"])
 	app.setOrganizationName("Fr75s")
-	app.setWindowIcon(QIcon(os.path.dirname(__file__) + "/res/icon.png"))
+	app.setWindowIcon(QIcon("qrc:/res/icon.png"))
 
 	init_filesystem()
 
 	engine = QQmlApplicationEngine()
 	engine.quit.connect(app.quit)
-	engine.load(os.path.dirname(__file__) + '/main.qml')
+	engine.load("qrc:/main.qml")
 
 	backend = MainAppBackend()
 	root = engine.rootObjects()[0]
