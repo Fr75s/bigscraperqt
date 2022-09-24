@@ -56,7 +56,9 @@ ct = [
 
 ct_format = ct[0] + ct[1] + ct[2] + "_" + ct[3] + ct[4] + ct[5]
 
+#
 ## Define some useful functions
+#
 
 # Format text for matching
 def form(text):
@@ -104,6 +106,10 @@ def video_len_test(info, *, incomplete):
 def download_video(url, options):
 	with YoutubeDL(options) as video_downloader:
 		err = video_downloader.download(url)
+
+
+def res_file(basename):
+	return os.path.dirname(__file__) + "/" + basename
 
 
 

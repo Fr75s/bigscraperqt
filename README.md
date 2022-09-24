@@ -4,11 +4,11 @@
 
 ## GUI Scraping tool
 
-Bigscraper-qt is a tool you can use to scrape [the LaunchBox Games Database.](https://gamesdb.launchbox-app.com/) and more. With a simple GUI, you can easily scrape metadata for a variety of systems.
+Bigscraper-qt is a tool you can use to scrape [the LaunchBox Games Database](https://gamesdb.launchbox-app.com/) and more. With a simple GUI, you can easily scrape metadata for a variety of systems.
 
-If you want more information, head to [the website.](https://fr75s.github.io/bigscraperqt/) This README will mainly serve as information regarding the development of bigscraper-qt.
+If you want more information, head to [the website.](https://fr75s.github.io/bigscraperqt/) This README mainly serves as information regarding the development of bigscraper-qt.
 
-Need help? For quick support or light feature suggestions, [Visit the Discord Server.](https://discord.gg/DUAFMgrhAY) If it is a severe enough problem, you may put it into the [issue tracker.](https://github.com/Fr75s/bigscraperqt/issues).
+Need help? For quick support or light feature suggestions, [Visit the Discord Server.](https://discord.gg/DUAFMgrhAY) If it is a problem of a big enough scope, you may put it into the [issue tracker.](https://github.com/Fr75s/bigscraperqt/issues).
 
 ## Running from Source
 
