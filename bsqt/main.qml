@@ -24,6 +24,7 @@ ApplicationWindow {
 	property QtObject backend
 	signal runtask(int taskID, var taskData)
 	signal doneloading()
+	signal checkforcontroller()
 	signal togopt(string option)
 	signal setopt(string option, string value)
 
@@ -121,6 +122,15 @@ ApplicationWindow {
 		running: false
 
 		onTriggered: working = false
+	}
+
+	Timer {
+		id: controllerCheck
+		interval: 10000
+		repeat: true
+		running: true
+
+		onTriggered: root.checkforcontroller()
 	}
 
 	Timer {

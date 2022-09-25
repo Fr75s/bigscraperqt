@@ -192,11 +192,9 @@ class InputWorker(QThread):
 
 						if (event.state > (STICK_THRESHOLD)):
 							self.input_event.emit("RDOWN", True)
-
-
-
 		except Exception as e:
 			log("Input Error: " + str(e), "W")
+			self.stop()
 			#print("Input Error: ", e)
 
 	def stop(self):
@@ -242,8 +240,11 @@ class MainAppBackend(QObject):
 		self.sendSystemsData.emit(optionsVary, 5)
 		self.sendSystemsData.emit(optionValues, 6)
 
-		self.input_thread = InputWorker()
+		self.reinit_controller()
 
+
+	def reinit_controller(self):
+		self.input_thread = InputWorker()
 		self.input_thread.start()
 		self.input_thread.input_event.connect(self.send_input_event)
 
@@ -387,6 +388,7 @@ def main():
 
 	root.runtask.connect(backend.run_task)
 	root.doneloading.connect(backend.on_load)
+	root.checkforcontroller.connect(backend.reinit_controller)
 	root.togopt.connect(backend.toggle_option)
 	root.setopt.connect(backend.set_option)
 	root.log.connect(backend.log_qml)

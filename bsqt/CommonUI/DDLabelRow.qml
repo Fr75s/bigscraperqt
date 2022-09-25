@@ -1,4 +1,4 @@
-import QtQuick 2.8
+import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 Item {
@@ -107,9 +107,9 @@ Item {
 		}
 
 		ScrollBar.vertical: ScrollBar {
-			visible: dropMenu.visible
-
 			parent: dropMenu.parent
+			opacity: dropMenu.visible ? 1 : 0
+			interactive: dropMenu.visible
 			anchors.top: dropMenu.top
 			anchors.right: dropMenu.right
 			anchors.bottom: dropMenu.bottom
@@ -173,6 +173,41 @@ Item {
 		function onHideOtherDDLR(exclude) {
 			if (label != exclude) {
 				hideDropMenu()
+			}
+		}
+	}
+
+
+
+	/* Typing Search functionality
+	 * Lets you type the name of the system when focused
+	 */
+
+	Timer {
+		id: typeSearchClearTimer
+		interval: 3000
+
+		running: false
+		repeat: false
+
+		onTriggered: {
+			typeSearchInput.clear()
+		}
+	}
+
+	TextInput {
+		id: typeSearchInput
+		opacity: 0
+		enabled: dropMenu.visible
+		focus: dropMenu.visible && !(dropMenu.focus)
+
+		onTextEdited: {
+			typeSearchClearTimer.restart();
+			for (let i = 0; i < dropDownModel.length; i++) {
+				if (dropDownModel[i].toLowerCase().indexOf(typeSearchInput.text.toLowerCase()) === 0) {
+					dropMenu.positionViewAtIndex(i, ListView.Beginning);
+					break;
+				}
 			}
 		}
 	}
