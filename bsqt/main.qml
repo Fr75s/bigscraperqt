@@ -68,7 +68,7 @@ ApplicationWindow {
 			} else if (type == 5) {
 				optionValuesInit = data
 				sentData += 1
-				console.log("OPTIONS", Object.keys(data), Object.values(data))
+				//console.log("OPTIONS", Object.keys(data), Object.values(data))
 			} else if (type == 6) {
 				optionValues = data
 				sentData += 1

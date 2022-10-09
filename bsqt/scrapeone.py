@@ -491,7 +491,6 @@ class ScrOneTask(QObject):
 				# Screenscraper has a policy of requiring hashes for game scrapes.
 				# As a result, I need to get 3 hashes for every scraped game.
 				# For large games, reading the whole file takes a while, causing slowdown.
-				# Too bad these hashes are outdated.
 				#
 
 				# MD5
@@ -588,7 +587,7 @@ class ScrOneTask(QObject):
 				log("Collecting Game Metadata", "I")
 
 				# File for the game
-				meta["File"] = os.path.basename(in_file)
+				meta["File"] = in_file
 
 				# Scan each regional code for data relevant to it
 				for reg in regions_ss[self.options_loc["region"]]:
@@ -729,7 +728,7 @@ class ScrOneTask(QObject):
 
 
 				# Get Video
-				if (self.options_loc["video"]) and ("Video Link" in meta) and not(os.path.join(paths["MEDIA"], system, game) + "/" + meta["Name"][0] + " - Video" + ".mp4", "wb"):
+				if (self.options_loc["video"]) and ("Video Link" in meta) and not(os.path.isfile(os.path.join(paths["MEDIA"], system, game) + "/" + meta["Name"][0] + " - Video" + ".mp4")):
 
 					self.out.emit("Downloading Video")
 					try:
@@ -741,6 +740,7 @@ class ScrOneTask(QObject):
 
 					except Exception as e:
 						log(f"Download Error: {e}", "D", True)
+						meta["Video Link"] = [meta["Video Link"][0].replace("Fr75s", "[DEVID]").replace(unstuff("169;216;221;197;183;184;141;180;163;214;234"), "[DEVPASS]")]
 
 				# Write Metadata to [game].json
 				meta_json = json.dumps(meta, indent = 4)

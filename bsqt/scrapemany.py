@@ -1,6 +1,8 @@
-#!/usr/bin/python3
+# scrapemany
 
-import os, sys, json, shutil, requests
+## Scrapes all games in a specified folder
+
+import os, sys, json, zlib, shutil, hashlib, requests
 from lxml import html
 
 from .const import *
@@ -16,6 +18,12 @@ class ScrapeTask(QObject):
 	data = []
 	options_loc = []
 
+	# Scraper Specifics
+
+	ss_stopall = False
+	ss_maxthreads = 1
+
+	# Functions
 	def __init__(self, data_i, opt_main):
 		super().__init__()
 		self.data = data_i
@@ -44,6 +52,11 @@ class ScrapeTask(QObject):
 		log("Data is " + str(self.data), "I")
 		log("Will write to " + paths["APP_DATA"], "I")
 
+		#
+		# #   #   # #
+		# #   ###  #
+		# ### ### # #
+		#
 		if (self.options_loc["module"] == "LaunchBox"):
 
 			log("Scraping from LaunchBox", "I")
@@ -56,7 +69,9 @@ class ScrapeTask(QObject):
 			in_folder = self.data[0].replace("file://", "")
 
 			# Get valid games in folder
+			# Get valid games in folder
 			game_files = []
+			game_names = []
 			for f in os.listdir(in_folder):
 				validFile = True
 				if not("." in f):
@@ -67,16 +82,12 @@ class ScrapeTask(QObject):
 							validFile = False
 							break
 				if (validFile):
-					game_files.append(os.path.join(in_folder, f))
+					game_name_format = form(trimext(os.path.basename(f)))
 
-			# Format game files into names of games for finding
-			game_names = []
-			for f in game_files:
-				game_name_format = form(trimext(os.path.basename(f)))
-
-				# Check if games exist
-				if (not(os.path.isfile(os.path.join(paths["METADATA"], system) + "/" + game_name_format + ".json")) or self.options_loc["recache"]):
-					game_names.append(game_name_format)
+					# If the file doesn't exist or recache mode is on, you can scrape
+					if (not(os.path.isfile(os.path.join(paths["METADATA"], system) + "/" + game_name_format + ".json")) or self.options_loc["recache"]):
+						game_files.append(os.path.join(in_folder, f))
+						game_names.append(game_name_format)
 
 			log("Data formatted to " + str([game_names, game_files, system]), "I")
 
@@ -262,8 +273,11 @@ class ScrapeTask(QObject):
 				log("No Unscraped Games In Folder", "I")
 				self.out.emit("No unscraped games in this folder. Exiting...")
 
-
-
+		#
+		# ### ##  #
+		# ### # # ###
+		# # # ##  ###
+		#
 		elif (self.options_loc["module"] == "Arcade Database"):
 
 			log("Scraping from Arcade Database", "I")
@@ -486,8 +500,391 @@ class ScrapeTask(QObject):
 
 			self.bar.emit(0, 0, 0)
 
+		#
+		#  ## ###  ##
+		#  #  #    #
+		# ##  ### ##
+		#
+		elif (self.options_loc["module"] == "ScreenScraper"):
+
+			log("Scraping from ScreenScraper", "I")
+
+			in_folder = self.data[0].replace("file://", "")
+			self.ss_stopall = False
+
+			system_full = self.data[1]
+			system = systems["ScreenScraper"][self.data[1]]
+			system_id = sc_sysid[system]
+
+			# Get valid games in folder
+			game_files = []
+			game_names = []
+			for f in os.listdir(in_folder):
+				validFile = True
+				if not("." in f):
+					validFile = False
+				else:
+					for ext in nongame_extensions:
+						if f.endswith(ext):
+							validFile = False
+							break
+				if (validFile):
+					game_name_format = form(trimext(os.path.basename(f)))
+
+					# If the file doesn't exist or recache mode is on, you can scrape
+					if (not(os.path.isfile(os.path.join(paths["METADATA"], system) + "/" + game_name_format + ".json")) or self.options_loc["recache"]):
+						game_files.append(os.path.join(in_folder, f))
+						game_names.append(game_name_format)
+
+			log("Data formatted to " + str([game_names, game_files, system, system_id]), "I")
+
+			# Create Folders if necessary
+			if not(os.path.isdir(os.path.join(paths["METADATA"], system))):
+				log("Creating metadata path for " + system, "D", True)
+				os.makedirs(os.path.join(paths["METADATA"], system), exist_ok=True)
+
+			for g in game_names:
+				# Iterate through each game's name for file creation to make it *organized*
+				if not(os.path.isdir(os.path.join(paths["MEDIA"], system, g))):
+					log("Creating media path for " + g, "D", True)
+					os.makedirs(os.path.join(paths["MEDIA"], system, g), exist_ok=True)
 
 
+
+			# and BEGIN
+
+			# Quick User Check
+
+			# Get the Username and Password of the user, set in the options which is transferred here
+			urlUserPass = ""
+
+			if (self.options_loc["screenScraperUser"] != "" and self.options_loc["screenScraperPass"] != ""):
+				urlUserPass = "&ssid=" + self.options_loc["screenScraperUser"] + "&sspassword=" + self.options_loc["screenScraperPass"]
+
+			url_base = "https://www.screenscraper.fr/api2/jeuInfos.php?devid=Fr75s&devpassword=" + unstuff("169;216;221;197;183;184;141;180;163;214;234") + "&softname=bigscraperqt&output=json" + urlUserPass
+
+			# Scrape Games
+			if not(len(game_names) == 0):
+				idx = 0
+				self.bar.emit(0, 1, 0)
+				self.bar.emit(1, 0, len(game_names))
+
+				for game_name in game_names:
+					game_file = game_files[idx]
+
+					#
+					# Ideally, this would be where I would be handling multithreaded scraping.
+					# I need to figure out how it works, however, which might require significant change to the program.
+					# For now, this small thing is how it is. :(
+					#
+
+					log(f"Scraping For {game_name}", "I")
+					self.screenscraper(game_name, game_file, url_base, [system_id, system, system_full])
+
+					idx += 1
+					self.bar.emit(2, idx, len(game_names))
+
+				self.out.emit("Scraping Complete. Exiting...")
+
+			else:
+				log("No Unscraped Games In Folder", "I")
+				self.out.emit("No unscraped games in this folder. Exiting...")
 
 		self.complete.emit()
+
+
+
+
+	# Actual Scraping functions can go here,
+	# Typically for use with multithreading (**later**)
+
+	def screenscraper(self, game_name, game_path, baseurl, system_info):
+
+		continue_scrape = True
+
+		# Get the necessary file details to ensure the game is scraped correctly
+
+		# A) File Size
+		game_size = os.path.getsize(game_path)
+		infoappend = ""
+		if (game_size > 128000000):
+			infoappend = "(This may take a while)"
+
+		# MD5
+		self.out.emit(f"Processing MD5 Hash (1/3) for {game_name} {infoappend}...")
+		hash_md5 = hashlib.md5(open(game_path, 'rb').read()).hexdigest()
+		log(f"MD5 Hash: {hash_md5}", "D", True)
+
+		# SHA1
+		self.out.emit(f"Processing SHA1 Hash (2/3) for {game_name} {infoappend}...")
+		hash_sha1 = hashlib.sha1(open(game_path, 'rb').read()).hexdigest()
+		log(f"SHA1 Hash: {hash_sha1}", "D", True)
+
+		# CRC32
+		self.out.emit(f"Processing CRC32 Hash (3/3) for {game_name} {infoappend}...")
+		hash_crc32 = zlib.crc32(open(game_path, 'rb').read())
+		log(f"CRC32 Hash: {hash_crc32}, CRC32 Hex-Formatted Hash: {hex(hash_crc32)[2:]}", "D", True)
+
+
+
+		# Generate URL
+		url = baseurl + "&crc=" + hex(hash_crc32)[2:] + "&md5=" + hash_md5 + "&sha1=" + hash_sha1 + "&systemeid=" + str(system_info[0]) + "&romtype=rom&romnom=" + os.path.basename(game_path) + "&romtaille=" + str(game_size)
+
+		if not(self.ss_stopall):
+			log(f"Attempting to get page for {game_name}", "I")
+			try:
+				self.out.emit(f"Getting Metadata Page For {game_name}")
+				page = requests.get(url, timeout=15)
+				log("Page Request Successful", "D", True)
+			except Exception as e:
+				self.out.emit("Sorry, there was a network error.")
+				log(f"ERROR: {e}", "D", True)
+				continue_scrape = False
+		else:
+			log(f"Cannot Continue for {game_name}, stop requested.", "D", True)
+
+		print(f"URL: \n{url}")
+
+		if continue_scrape and not(self.ss_stopall):
+
+			# Check for errors returned by the response if invalid
+
+			# These first 4 indicate a global issue, so stop all scraping if seen
+			if "API totalement fermé" in page.text:
+				self.out.emit("The ScreenScraper API is down right now. Exiting...")
+				log(f"ScreenScraper Request Error: API Down", "I")
+				self.ss_stopall = True
+				self.complete.emit()
+			if "Le logiciel de scrape utilisé a été blacklisté" in page.text:
+				self.out.emit("Bigscraper-qt has been blacklisted. Exiting...")
+				log(f"ScreenScraper Request Error: App Blacklisted", "I")
+				self.ss_stopall = True
+				self.complete.emit()
+			if "Votre quota de scrape est" in page.text:
+				self.out.emit("Your daily ScreenScraper scraping limit has been reached, try again tomorrow.")
+				log(f"ScreenScraper Request Error: Daily Quota Reached", "I")
+				self.ss_stopall = True
+				self.complete.emit()
+			if ("API fermé pour les non membres" in page.text) or ("API closed for non-registered members" in page.text):
+				self.out.emit("ScreenScraper is down for unregistered users, Exiting...")
+				log(f"ScreenScraper Request Error: Server Down for Unregistered users.", "I")
+				self.ss_stopall = True
+				self.complete.emit()
+
+			# This one is just a local problem, so other games can continue even if this one is bad
+			if "Champ crc, md5 ou sha1 erroné" in page.text:
+				self.out.emit("Your Game file's hashes are incorrect. Exiting...")
+				log(f"ScreenScraper Request Error: Incorrect File Hashes (check the hashes of your files)", "I")
+				continue_scrape = False
+
+
+			if continue_scrape and not(self.ss_stopall):
+				# Scan for content (if request is successful)
+				page_content = page.json()
+
+				# Check if file returned is empty
+				if not(page_content):
+					self.out.emit("ScreenScraper Returned Nothing. Exiting...")
+					log(f"The JSON File ScreenScraper Returned is empty. ScreenScraper is probably down.", "I")
+					continue_scrape = False
+
+				# Check if any errors were returned by ScreenScraper
+				if continue_scrape and not(self.ss_stopall):
+					if not(page_content["header"]["success"] == "true"):
+						self.out.emit(f"ScreenScraper Error: {page_content['header']['error']}. Exiting...")
+						log(f"ScreenScraper Returned An Error: {page_content['header']['error']}", "I")
+						continue_scrape = False
+
+					# Check if you've exceeded the daily request limit
+					reqs_today = int(page_content["response"]["ssuser"]["requeststoday"])
+					reqs_max = int(page_content["response"]["ssuser"]["maxrequestsperday"])
+					if (reqs_today >= reqs_max):
+						self.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
+						log("You've exceeded the Max Daily Requests.", "I")
+						self.ss_stopall = True
+
+					self.ss_maxthreads = int(page_content["response"]["ssuser"]["maxthreads"])
+
+					# Last check before metadata is actually scraped
+					if continue_scrape and not(self.ss_stopall):
+						self.out.emit(f"Collecting Metadata for {game_name}")
+						log("Collecting Game Metadata", "I")
+
+						game_raw = page_content["response"]["jeu"]
+						meta = {}
+
+						# File for the game
+						meta["File"] = game_path
+
+						# Scan each regional code for data relevant to it
+						for reg in regions_ss[self.options_loc["region"]]:
+
+							# Name: Check if names of games match the regional name
+							if not("Name" in meta):
+								log("Checking for Game Name", "D", True)
+								for uncat_name in game_raw["noms"]:
+									if uncat_name["region"] == reg:
+										meta["Name"] = [uncat_name["text"]]
+										log("Adding Game Name", "D", True)
+										break
+
+							# Release Date: Check if regional release dates match
+							if not("Release Date" in meta):
+								log("Checking for Game Release", "D", True)
+								for uncat_release in game_raw["dates"]:
+									if uncat_release["region"] == reg:
+										rd_raw = uncat_release["text"].split("-")
+										meta["Release Date"] = [calendar_month_rev[rd_raw[1]] + " " + rd_raw[2] + ", " + rd_raw[0]]
+										log("Adding Game Release", "D", True)
+										break
+
+						# Also scan each language for data relevant to it
+						langlist = langs_ss[self.options_loc["region"]]
+						if self.options_loc["languageOverride"] != "None":
+							langlist = [langs_universal[self.options_loc["languageOverride"]]]
+
+						genrelist = []
+						genre_indexes_namefound = []
+						for lang in langlist:
+
+							# Overview: Check if regional overview matches region
+							if not("Overview" in meta):
+								log("Checking for Game Overview", "D", True)
+								for uncat_ov in game_raw["synopsis"]:
+									if uncat_ov["langue"] == lang:
+										meta["Overview"] = [uncat_ov["text"]]
+										log("Adding Game Overview", "D", True)
+										break
+
+							# Genre: Scan through each genre and check if the language matches
+							idx = 0
+							for genre in game_raw["genres"]:
+								log("Checking for Game Genre", "D", True)
+								# Check if this genre already has found a name
+								if not(idx in genre_indexes_namefound):
+									log("This Genre name not found yet", "D", True)
+									for genre_name in genre["noms"]:
+										if (genre_name["langue"] == lang):
+											genrelist.append(genre_name["text"])
+											genre_indexes_namefound.append(idx)
+											log(f"Adding this genre ({idx})", "D", True)
+											break
+								idx += 1
+						meta["Genres"] = genrelist
+
+
+
+						# Platform
+						log("Getting Platform", "D", True)
+						meta["Platform"] = [system_info[2]]
+
+						# Developers, Publishers
+						log("Getting Developers", "D", True)
+						meta["Developers"] = [game_raw["developpeur"]["text"]]
+						log("Getting Publishers", "D", True)
+						meta["Publishers"] = [game_raw["editeur"]["text"]]
+
+						# Max Players: Get the last number of the range
+						log("Getting Max Players", "D", True)
+						meta["Max Players"] = [game_raw["joueurs"]["text"].split("-")[-1]]
+
+						# Rating
+						# ScreenScraper simply has the rating out of 20, do a little math and it is just dividing the rating by 4 to get a rating out of 5
+						log("Getting Rating", "D", True)
+						meta["Rating"] = [str((int(game_raw["note"]["text"])) / 4)]
+
+
+
+						# Media Scraping
+						log("Starting to Get Media", "I", True)
+						self.out.emit(f"Downloading Images for {meta['Name'][0]}")
+						self.bar.emit(1, 1, 0)
+
+						iidx = 0
+						images = []
+
+						for media in game_raw["medias"]:
+
+							# Get Type, URL and Region of Image
+							mtype = media["type"]
+							murl = media["url"].replace("neoclone", "www")
+							mreg = media["region"] if ("region" in media) else "none"
+
+							image_id = ""
+
+							# Convert ScreenScraper region to Formatted Name
+							translated_mreg = ""
+							if (mreg != "ss") and (mreg != "none") and (mreg in region_translate):
+								translated_mreg = " " + region_translate[mreg]
+
+							# Set the Formalized Image ID (title)
+							if mtype in ss_arts:
+								image_id = meta["Name"][0] + " - " + ss_arts[mtype] + translated_mreg
+
+							if mtype == "video-normalized":
+								meta["Video Link"] = [murl]
+
+
+							# If the image is unique, download it.
+							if not(image_id in images) and (image_id != ""):
+								# Actually Download the Image
+								log(f"Downloading Media ({idx + 1} / {len(game_raw['medias'])}) (for {meta['Name'][0]})", "I")
+
+								if (not(os.path.isfile(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + image_id + "." + media["format"]))) and (not(self.ss_stopall)):
+									try:
+										image_data = requests.get(murl, timeout=15)
+										# Write it to a file
+										log("Download Successful, Writing to file", "D", True)
+										open(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + image_id + ".png", "wb").write(image_data.content)
+									except Exception as e:
+										log(f"Download Error: {e}", "D", True)
+										iidx += 1
+										self.bar.emit(3, iidx, len(game_raw["medias"]))
+										continue
+
+								images.append(image_id)
+
+							else:
+								log("This image is not unique or is already downloaded.", "D", True)
+
+							iidx += 1
+							self.bar.emit(3, iidx, len(game_raw["medias"]))
+
+						meta["Images"] = images
+						self.bar.emit(1, 0, 0)
+
+						# Get Video
+						log(f"Checking if Video Download is Needed for {meta['Name'][0]}", "D", True)
+						log(str(self.options_loc["video"]), "D", True)
+						log(str("Video Link" in meta), "D", True)
+						log(str(self.ss_stopall), "D", True)
+
+						if ("Video Link" in meta):
+							log(meta["Video Link"][0], "D", True)
+
+						if (self.options_loc["video"]) and ("Video Link" in meta) and not(os.path.isfile(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + meta["Name"][0] + " - Video" + ".mp4")) and (not(self.ss_stopall)):
+
+							self.out.emit(f"Downloading Video for {meta['Name'][0]}")
+							log(f"Downloading Video for {meta['Name'][0]}", "D", True)
+							try:
+								video_data = requests.get(meta["Video Link"][0], timeout=15)
+								meta["Video Link"] = [meta["Video Link"][0].replace("Fr75s", "[DEVID]").replace(unstuff("169;216;221;197;183;184;141;180;163;214;234"), "[DEVPASS]")]
+
+								log("Download Successful, Writing to file", "D", True)
+								open(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + meta["Name"][0] + " - Video" + ".mp4", "wb").write(video_data.content)
+
+							except Exception as e:
+								log(f"Download Error: {e}", "D", True)
+								video_data = requests.get(meta["Video Link"][0], timeout=15)
+								meta["Video Link"] = [meta["Video Link"][0].replace("Fr75s", "[DEVID]").replace(unstuff("169;216;221;197;183;184;141;180;163;214;234"), "[DEVPASS]")]
+
+						if (self.ss_stopall):
+							self.out.emit("Global API Error Detected. Wrapping Up...")
+
+						# Write Metadata to [game_name].json
+						meta_json = json.dumps(meta, indent = 4)
+						log("Writing Metadata to File", "D", True)
+						open(os.path.join(paths["METADATA"], system_info[1]) + "/" + game_name + ".json", "w").write(meta_json)
+
+
 

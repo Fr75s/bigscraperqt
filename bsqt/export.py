@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-import os, sys, json, shutil
+import os, sys, json, shutil, requests
+from lxml import html
 
 from .const import *
 
@@ -48,15 +49,21 @@ class ExportTask(QObject):
 			valid = False
 
 		# Split Based on Pegasus / EmulationStation Export
-		if (out_format == "Pegasus Frontend"):
+		if (out_format == "Pegasus Frontend" or out_format == "Pegasus Frontend (Lutris IDs)"):
 			# Export For Pegasus
 			self.out.emit("Exporting For Pegasus...")
 			log("Format: PEGASUS", "I")
 
+			uselutris = (out_format == "Pegasus Frontend (Lutris IDs)")
+			if uselutris:
+				log("Using LUTRIS IDENTIFIERS", "I")
+
 			# System Values
 			output.append("collection: " + system_name)
 			output.append("shortname: " + system)
-			output.append("command: [INSERT COMMAND HERE]")
+
+			if not(uselutris):
+				output.append("command: [INSERT COMMAND HERE]")
 
 			completed = 0
 
@@ -70,10 +77,56 @@ class ExportTask(QObject):
 				output.append("")
 				output.append("")
 
-				# Get File and Name. These Must exist, as they are required if the game was found while scraping.
+				# Get The Name, which must exist.
 				game_form = form(meta["Name"][0])
 				output.append("game: " + meta["Name"][0])
-				output.append("file: " + meta["File"])
+
+				# If we're using lutris IDs, start the process, otherwise, get files as normal.
+				if (uselutris):
+					self.out.emit(f"Getting Lutris ID for {meta['Name'][0]}")
+
+					# Get the URL and get the search page for the game
+					lutris_url = "https://lutris.net/games?q=" + form(meta['Name'][0]).replace("_","+")
+					try:
+						log(f"Getting Page {lutris_url}", "D", True)
+						lutris_search = requests.get(lutris_url, timeout=15)
+					except Exception as e:
+						log(f"Download Error: {e}", "D", True)
+						output = output[:-3]
+						continue
+
+					# Convert to scrapeable data
+					log(f"Page Content Acquired", "I", True)
+					ls_tree = html.fromstring(lutris_search.content)
+
+					# Search for the game match
+					ls_games = ls_tree.xpath('//a[@class="game-name"]/text()')
+					ls_links = ls_tree.xpath('//a[@class="game-name"]/@href')
+					log(str(ls_games), "D", True)
+
+					# Check for a match
+					found_lsid = False
+					for lsidx in range(0, len(ls_games)):
+						log(ls_games[lsidx], "D", True)
+						if (form(ls_games[lsidx]) == form(meta["Name"][0])):
+							# Link found, get lutris id
+							game_link = ls_links[lsidx]
+
+							game_lid = game_link.split("/")[-2]
+							log(f"Game ID For {meta['Name'][0]}: {game_lid}", "D", True)
+
+							found_lsid = True
+							output.append("file: lutris:" + game_lid)
+							break
+
+					if not(found_lsid):
+						output.append("file: [no-lutris-id-found]")
+
+				else:
+					if (self.options_loc["localPaths"]):
+						output.append("file: " + os.path.basename(meta["File"]))
+					else:
+						output.append("file: " + meta["File"])
 
 				# Get the rest of the text metadata, which may or may not exist.
 				if "Rating" in meta:
@@ -310,7 +363,10 @@ class ExportTask(QObject):
 				output.append("\t<game>")
 
 				# File
-				output.append(f'\t\t<path>{meta["File"]}</path>')
+				if (self.options_loc["localPaths"]):
+					output.append(f'\t\t<path>{os.path.basename(meta["File"])}</path>')
+				else:
+					output.append(f'\t\t<path>{meta["File"]}</path>')
 
 				# Name
 				output.append(f'\t\t<name>{meta["Name"][0]}</name>')

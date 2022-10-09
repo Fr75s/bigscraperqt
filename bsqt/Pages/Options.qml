@@ -59,7 +59,7 @@ Item {
 				},
 
 				{
-					id: "module",
+					id: "optModule",
 					type: "multiSetting",
 					title: "Scraping Service",
 					setting: "module",
@@ -70,7 +70,7 @@ Item {
 				},
 
 				{
-					id: "module",
+					id: "optRegion",
 					type: "multiSetting",
 					title: "Region",
 					setting: "region",
@@ -100,7 +100,17 @@ Item {
 					infoType: InfoModal.InfoIcon.Warning
 				},
 				{
-					id: "optVideoLimit",
+					id: "optLocalPaths",
+					type: "setting",
+					title: "Use Local Paths",
+					setting: "localPaths",
+					initial: defopts[4],
+
+					info: "This option toggles whether exported files use local paths or full paths for games, e.g. <tt>[Game.rom]</tt> vs <tt>[/path/to/Game.rom]</tt>.<br><br>This is recommended for console ROMs as it allows you to easily transfer metadata along with your games to other devices.<br>This is not recommended for PC Games, as their executables are likely installed in different directories from eachother.",
+					infoType: InfoModal.InfoIcon.Info
+				},
+				{
+					id: "optRecache",
 					type: "setting",
 					title: "Recache Mode",
 					setting: "recache",

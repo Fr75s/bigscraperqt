@@ -121,6 +121,7 @@ options = {
 	"videoOverLimit": False,
 	"glassyTitle": True,
 	"recache": False,
+	"localPaths": False,
 }
 
 #
@@ -256,7 +257,7 @@ def log(msg, prefix="", debug=False):
 	if not(no_logs):
 		logfile.write(m + "\n")
 
-log("Init Logging... " + ct[0] + "-" + ct[1] + "-" + ct[2] + " " + ct[3] + ":" + ct[4] + ":" + ct[5], "I")
+log("Program Init... " + ct[0] + "-" + ct[1] + "-" + ct[2] + " " + ct[3] + ":" + ct[4] + ":" + ct[5], "I")
 
 ## String Stuff
 
@@ -737,5 +738,6 @@ sc_sysid = {
 # Valid Export Platforms
 explats = {
 	"Pegasus Frontend": "pegasus",
+	"Pegasus Frontend (Lutris IDs)": "lpegasus",
 	"EmulationStation": "es"
 }
