@@ -133,7 +133,10 @@ options = {
 
 optionsVary = {
 	"region": "North America",
-	"module": "LaunchBox"
+	"module": "LaunchBox",
+	"languageOverride": "None",
+	"screenScraperUser": "",
+	"screenScraperPass": ""
 }
 
 def merged_options():
@@ -149,27 +152,61 @@ def save_options():
 
 optionValues = {
 	"region": ["North America", "Europe", "Japan"],
-	"module": ["LaunchBox", "Arcade Database", "ScreenScraper"]
+	"module": ["LaunchBox", "Arcade Database", "ScreenScraper"],
+	"languageOverride": ["None", "English", "Spanish", "French", "German", "Portuguese", "Italian"]
 }
 
-#optionValues_region = {
-	#"North America": "na",
-	#"Europe": "eu",
-	#"Japan": "jp"
-#}
-
-#optionValues_module = {
-	#"LaunchBox": "lb",
-	#"Arcade Database": "ad"
-#}
-
-
-
+langs_universal = {
+	"English": "en",
+	"Spanish": "es",
+	"French": "fr",
+	"German": "de",
+	"Portuguese": "pt",
+	"Italian": "it",
+}
 
 regions = {
 	"North America": ["(North America)", "(United States)", "(Canada)", "(World)"],
 	"Europe": ["(Europe)", "(United Kingdom)", "(Germany)", "(France)", "(Spain)", "(Italy)", "(The Netherlands)", "(Russia)", "(World)"],
 	"Japan": ["(Japan)", "(World)", ""]
+}
+
+regions_ss = {
+	"North America": ["us", "ame", "ca", "wor", "ss"],
+	"Europe": ["eu", "uk", "de", "fr", "wor", "ss"],
+	"Japan": ["jp", "wor", "ss"]
+}
+
+region_translate = {
+	"ss": "",
+
+	"us": "(North America)",
+	"ame": "(North America)",
+	"ca": "(North America)",
+
+	"eu": "(Europe)",
+	"uk": "(United Kingdom)",
+	"de": "(Germany)",
+	"fr": "(France)",
+	"sp": "(Spain)",
+	"it": "(Italy)",
+	"nl": "(The Netherlands)",
+	"ru": "(Russia)",
+
+	"jp": "(Japan)",
+	"cn": "(China)",
+	"kr": "(Korea)",
+
+	"au": "(Australia)",
+	"br": "(Brazil)",
+
+	"wor": "(World)"
+}
+
+langs_ss = {
+	"North America": ["en", "es"],
+	"Europe": ["en", "fr", "es", "de", "it", "pt"],
+	"Japan": ["en"]
 }
 
 ## Handle Flags
@@ -207,6 +244,7 @@ if not(os.path.isdir(paths["LOGS"])):
 
 if not(no_logs):
 	logfile = open(os.path.join(paths["LOGS"], ct_format + ".log"), "a")
+
 def log(msg, prefix="", debug=False):
 	m = msg
 	if not(prefix == ""):
@@ -219,6 +257,43 @@ def log(msg, prefix="", debug=False):
 		logfile.write(m + "\n")
 
 log("Init Logging... " + ct[0] + "-" + ct[1] + "-" + ct[2] + " " + ct[3] + ":" + ct[4] + ":" + ct[5], "I")
+
+## String Stuff
+
+stuffkey = "PleaseDoNotUseThisForMaliciousPurposesWhatWouldYouEvenAccomplishWhenYourQuoteJoyEndquoteDoesntMatter"
+def stuff(msg):
+	msg_chars = []
+	stuff_chars = []
+
+	for i in range(0, len(msg)):
+		msg_chars.append(ord(msg[i]))
+	for i in range(0, len(msg)):
+		stuff_chars.append(ord(stuffkey[i]))
+
+	out = ""
+	for i in range(0, len(msg)):
+		out += str(msg_chars[i] + stuff_chars[i]) + ";"
+
+	out = out[:-1]
+
+	return out
+
+def unstuff(msg):
+	enclen = len(msg.split(";"))
+
+	msg_chars = []
+	stuff_chars = []
+
+	for i in range(0, enclen):
+		msg_chars.append(int(msg.split(";")[i]))
+	for i in range(0, enclen):
+		stuff_chars.append(ord(stuffkey[i]))
+
+	out = ""
+	for i in range(0, enclen):
+		out += (chr(msg_chars[i] - stuff_chars[i]))
+
+	return out
 
 
 ## SCRAPING CONVERSIONS & LISTS
@@ -238,6 +313,8 @@ calendar_month = {
 	"November": "11",
 	"December": "12"
 }
+
+calendar_month_rev = {v: k for k, v in calendar_month.items()}
 
 ad_arts = {
 	"image_ingame": ["Screenshot - Gameplay"],
@@ -262,6 +339,19 @@ pegasus_artconv = {
 	"Video": ["video"]
 }
 
+# ScreenScraper Art Types to LB Ids
+ss_arts = {
+	"sstitle": "Screenshot - Game Title",
+	"ss": "Screenshot - Gameplay",
+	"fanart": "Fanart - Background",
+	"screenmarquee": "Arcade - Marquee",
+	"wheel": "Clear Logo",
+	"box-2D": "Box - Front",
+	"box-2D-back": "Box - Back",
+	"box-3D": "Box - 3D",
+	"support-2D": "Cart - Front" #(ScreenScraper does not differentiate between disc and cartridge, so this will have to suffice)
+}
+
 # Extensions that should be ignored when scraping, mostly saves, extra files and metadata
 nongame_extensions = [
 	".txt",
@@ -278,12 +368,7 @@ nongame_extensions = [
 # Systems
 #
 
-# List of ADB systems
-systems_ad = {
-	"Arcade": "arcade"
-}
-
-# List of LaunchBox systems and system ids
+# List of Systems with corresponding system IDs
 systems = {
 	"Arcade Database": {
 		"Arcade": "arcade"
@@ -423,13 +508,13 @@ systems = {
 		"Nintendo 64": "n64",
 		"Nintendo 64DD": "64dd",
 		"Nintendo DS": "nds",
+		"Nintendo Entertainment System": "nes",
 		"Nintendo Famicom Disk System": "fds",
 		"Nintendo Game & Watch": "gameandwatch",
 		"Nintendo Game Boy": "gb",
 		"Nintendo Game Boy Color": "gbc",
 		"Nintendo Game Boy Advance": "gba",
 		"Nintendo GameCube": "gc",
-		"Nintendo Entertainment System": "nes",
 		"Nintendo Pokemon Mini": "pokemini",
 		"Nintendo Switch": "switch",
 		"Nintendo Virtual Boy": "virtualboy",
@@ -553,10 +638,10 @@ lb_sysid = {
 	"odyssey": "78",
 	"channelf": "58",
 	"gamecom": "63",
-	"apple2": "Apple II"
+	"apple2": "111"
 }
 
-sc_sysid: {
+sc_sysid = {
 	"3do": 29,
 	"amstradcpc": 65,
 	"gx4000": 87,

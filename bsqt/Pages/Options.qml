@@ -70,6 +70,17 @@ Item {
 				},
 
 				{
+					id: "module",
+					type: "multiSetting",
+					title: "Region",
+					setting: "region",
+					initialChoice: optionValuesInit["region"],
+
+					info: "Selecting a region decides what type of metadata is prioritized when scraped. Choosing a region allows exported metadata to match your region of choice as well.",
+					infoType: InfoModal.InfoIcon.Info
+				},
+
+				{
 					id: "optVideo",
 					type: "setting",
 					title: "Video Downloads",
@@ -97,6 +108,31 @@ Item {
 
 					info: "Recache mode allows you to redownload previously scraped data, useful if a new feature is implemented that adds to scraped data.<br>It is recommended to turn this off as this uses more bandwidth than necessary, as with recache mode, you always redownload everything.",
 					infoType: InfoModal.InfoIcon.Info
+				},
+
+
+				{
+					id: "subScreenScraper",
+					type: "label",
+					title: "ScreenScraper"
+				},
+
+				{
+					id: "module",
+					type: "inputSetting",
+					title: "Username",
+					setting: "screenScraperUser",
+					initialChoice: optionValuesInit["screenScraperUser"],
+					info: ""
+				},
+				{
+					id: "module",
+					type: "inputSetting",
+					title: "Password",
+					setting: "screenScraperPass",
+					initialChoice: optionValuesInit["screenScraperPass"],
+					pass: true,
+					info: ""
 				}
 
 			].forEach(function(e) { optionEntries.append(e); });
@@ -204,6 +240,30 @@ Item {
 				}
 			}
 
+			TextInputLabelRow {
+				visible: (type == "inputSetting")
+
+				id: optionTextInput
+				width: infoIndicator.visible ? parent.width - infoIndicator.width - 16 - (anchors.rightMargin * 2) : parent.width - (anchors.rightMargin * 2)
+				height: parent.height * 0.8
+
+				focused: false
+				passinput: type == "inputSetting" ? pass : false
+				defaultIn: type == "inputSetting" ? initialChoice : ""
+
+				anchors.right: parent.right
+				anchors.rightMargin: pageWidthOffset / 2
+
+				anchors.top: parent.top
+				anchors.topMargin: parent.height * 0.1
+
+				label: title
+
+				function enterAction(text) {
+					root.setopt(setting, text)
+				}
+			}
+
 			ButtonLabelRow {
 				visible: (type == "multiSetting")
 
@@ -228,18 +288,6 @@ Item {
 					generalSelectModal.title = "Select Scraping Module"
 					generalSelectModal.invoke(optionValues[setting])
 				}
-
-				/*
-				function pushAction() {
-					optsView.currentIndex = index
-
-					generalDropDown.width = optionDDInvoker.width
-					generalDropDown.dropDownModel = optionValues[setting]
-					generalDropDown.attachedTo = optionDDInvoker
-
-					generalDropDown.invoke()
-				}
-				*/
 			}
 
 			function selectAction(set, data) {
@@ -249,41 +297,14 @@ Item {
 
 
 
-			/*
-			DDLabelRow {
-				visible: (type == "dropSetting")
-
-				id: optionDD
-				width: infoIndicator.visible ? parent.width - infoIndicator.width - 16 - (anchors.rightMargin * 2) : parent.width - (anchors.rightMargin * 2)
-				height: parent.height * 0.8
-
-				focused: (index == optsView.currentIndex)
-
-				anchors.right: parent.right
-				anchors.rightMargin: pageWidthOffset / 2
-
-				anchors.top: parent.top
-				anchors.topMargin: parent.height * 0.1
-
-				label: title
-				btnIcon: ""//"application-menu"
-				btnLabel: optionValuesInit[setting]
-				dropDownModel: optionValues[setting]
-				above: true
-
-				function pushAction(md) {
-					btnIcon = ""
-					btnLabel = md
-				}
-			}
-			*/
-
 			function gpOnA() {
 				if (type == "setting") {
 					optionButton.btnChecked = !optionButton.btnChecked
 					optionButton.pushAction()
 				} else if (type == "multiSetting") {
 					optionModalInvoker.pushAction()
+				} else if (type == "inputSetting") {
+					optionTextInput.focused = true
 				}
 			}
 
@@ -293,6 +314,9 @@ Item {
 					generalInfoModal.information = info
 
 					generalInfoModal.invoke()
+				}
+				if (optionTextInput.focused) {
+					optionTextInput.focused = false
 				}
 			}
 		}
@@ -390,6 +414,11 @@ Item {
 				<b>Arcade Database</b><br>
 				Made By motoschifo.<br>
 				<a href="http://adb.arcadeitalia.net/">Website</a>
+
+				<br><br>
+				<b>ScreenScraper</b><br>
+				Made By the ScreenScraper Community.<br>
+				<a href="https://www.screenscraper.fr/">Website</a>
 
 				`
 				/*, /*<a href="https://gamesdb.launchbox-app.com/">Database</a>*/

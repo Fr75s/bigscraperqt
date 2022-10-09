@@ -201,13 +201,23 @@ Item {
 		enabled: dropMenu.visible
 		focus: dropMenu.visible && !(dropMenu.focus)
 
+		property int lastItemIndex: -1
+
 		onTextEdited: {
 			typeSearchClearTimer.restart();
 			for (let i = 0; i < dropDownModel.length; i++) {
 				if (dropDownModel[i].toLowerCase().indexOf(typeSearchInput.text.toLowerCase()) === 0) {
 					dropMenu.positionViewAtIndex(i, ListView.Beginning);
+					lastItemIndex = i;
 					break;
 				}
+			}
+		}
+
+		onAccepted: {
+			if (lastItemIndex >= 0) {
+				pushAction(dropDownModel[lastItemIndex])
+				hideDropMenu()
 			}
 		}
 	}
