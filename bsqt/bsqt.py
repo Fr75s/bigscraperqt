@@ -14,7 +14,7 @@ from .scrapeone import ScrOneTask
 from .scrapemany import ScrapeTask
 from .export import ExportTask
 
-from PyQt5.QtWidgets import QFileDialog, QApplication
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtQml import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *

@@ -7,7 +7,7 @@ from PyQt5.QtCore import *
 ## Genral Information
 info = {
 	"NAME": "bigscraper-qt",
-	"VERSION": "1.3.0",
+	"VERSION": "1.4.0",
 	"AUTHOR": "Fr75s",
 	"LICENSE": "GPLv3",
 	"URL": "https://fr75s.github.io/bigscraperqt/"
@@ -80,6 +80,9 @@ def form(text):
 
 	# Numerous Character Replacements
 	return out.upper().strip(" ").replace(" -","").replace(": ","_").replace(" ","_").replace(":","_").replace("-","_").replace(".","").replace("!","").replace("?","").replace("'","").replace("&","AND")
+
+def linkform(text):
+	return text.upper().strip(" ").replace(" ","+")
 
 # Remove Extension from file names
 def trimext(text):

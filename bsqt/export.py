@@ -86,7 +86,7 @@ class ExportTask(QObject):
 					self.out.emit(f"Getting Lutris ID for {meta['Name'][0]}")
 
 					# Get the URL and get the search page for the game
-					lutris_url = "https://lutris.net/games?q=" + form(meta['Name'][0]).replace("_","+")
+					lutris_url = "https://lutris.net/games?q=" + linkform(meta['Name'][0]) + "&paginate_by=100"
 					try:
 						log(f"Getting Page {lutris_url}", "D", True)
 						lutris_search = requests.get(lutris_url, timeout=15)

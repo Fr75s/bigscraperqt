@@ -2,12 +2,17 @@
 
 ## Scrapes all games in a specified folder
 
-import os, sys, json, zlib, shutil, hashlib, requests
+import os, sys, json, time, zlib, shutil, hashlib, requests
 from lxml import html
 
 from .const import *
 
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QApplication
+
+
+
+# Scraping Class Worker
 
 class ScrapeTask(QObject):
 	complete = pyqtSignal()
@@ -569,20 +574,95 @@ class ScrapeTask(QObject):
 				self.bar.emit(0, 1, 0)
 				self.bar.emit(1, 0, len(game_names))
 
+				ss_threadpool = QThreadPool()
+
+				# If the user has a username/password, scrape ssuserInfos to see how many threads they get
+
+				if (urlUserPass != ""):
+					log(f"Getting User Page", "I")
+
+					# Get the user page
+					try:
+						self.out.emit(f"Getting User Page")
+						user_page = requests.get(url_base.replace("jeuInfos", "ssuserInfos"), timeout=15)
+						log("Page Request Successful", "D", True)
+					except Exception as e:
+						self.out.emit("Sorry, there was a network error.")
+						log(f"ERROR: {e}", "W")
+						self.complete.emit()
+
+					# Check if JSON is valid
+					user_page_content = {}
+					try:
+						user_page_content = user_page.json()
+					except:
+						self.out.emit("ScreenScraper Returned an Error when getting your info. Exiting...")
+						log(f"ScreenScraper Error: {user_page.text}")
+						self.complete.emit()
+
+					if not(user_page_content):
+						self.out.emit("ScreenScraper Returned Nothing. Exiting...")
+						log(f"The JSON File ScreenScraper Returned is empty.", "I")
+						self.complete.emit()
+					if not(user_page_content["header"]["success"] == "true"):
+						self.out.emit(f"ScreenScraper Error: {user_page_content['header']['error']}. Exiting...")
+						log(f"ScreenScraper Returned An Error: {user_page_content['header']['error']}", "I")
+						self.complete.emit()
+
+					# Check for user stats
+					reqs_today = int(user_page_content["response"]["ssuser"]["requeststoday"])
+					reqs_max = int(user_page_content["response"]["ssuser"]["maxrequestsperday"])
+					if (reqs_today >= reqs_max):
+						self.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
+						log("You've exceeded the Max Daily Requests.", "I")
+						self.complete.emit()
+
+					log(f"ScreenScraper Requests As of this line: {reqs_today}", "D", True)
+					log(f"Maximum alotted requests: {reqs_max}", "D", True)
+
+					self.ss_maxthreads = int(user_page_content["response"]["ssuser"]["maxthreads"])
+					log(f"Max number of threads: {self.ss_maxthreads}", "D", True)
+
+				# Set the max thread count based on the results
+				ss_threadpool.setMaxThreadCount(self.ss_maxthreads)
+				log(f"Threadpool Maximum Capacity: {ss_threadpool.maxThreadCount()}", "D", True)
+
+				ss_games = [0]
+
 				for game_name in game_names:
 					game_file = game_files[idx]
 
 					#
-					# Ideally, this would be where I would be handling multithreaded scraping.
-					# I need to figure out how it works, however, which might require significant change to the program.
-					# For now, this small thing is how it is. :(
+					# Handling Multithreading, now that I've figured it out
 					#
 
-					log(f"Scraping For {game_name}", "I")
-					self.screenscraper(game_name, game_file, url_base, [system_id, system, system_full])
+					# Initialize the Worker
+					log(f"Initializing Thread for {game_name}", "I")
+					log(f"GAME FILE: {game_file}", "D", True)
+					log(f"SYSTEM INFO: {system_id}, {system}, {system_full}", "D", True)
+					#self.screenscraper(game_name, game_file, url_base, [system_id, system, system_full])
+					screenscraper_worker = ScreenScraperRunnable(self.data, self.options_loc, [game_name, game_file, url_base, [system_id, system, system_full]])
 
+					# Connect Relevant Signals
+					screenscraper_worker.sig.out.connect(lambda msg: self.out.emit(msg))
+					screenscraper_worker.sig.bar.connect(lambda act, pre, end: self.bar.emit(act, pre, end))
+					screenscraper_worker.sig.termall.connect(lambda: ss_threadpool.clear())
+
+					screenscraper_worker.sig.finished.connect(lambda: ss_games.__setitem__(0, ss_games[0] + 1)) # Lambdas are funny in that they don't allow assignment within, but here, we cheat the lambdas
+					screenscraper_worker.sig.finished.connect(lambda: self.bar.emit(2, ss_games[0], len(game_names)))
+
+					# Start the thread
+					ss_threadpool.start(screenscraper_worker)
+
+					# Increment index to get the correct file
 					idx += 1
-					self.bar.emit(2, idx, len(game_names))
+
+					# Sleep for 1.2 seconds to space out requests
+					time.sleep(1.2)
+
+				# Wait until all threads are done.
+				while ss_games[0] < len(game_names) and ss_threadpool.activeThreadCount() > 0:
+					QApplication.processEvents()
 
 				self.out.emit("Scraping Complete. Exiting...")
 
@@ -590,15 +670,63 @@ class ScrapeTask(QObject):
 				log("No Unscraped Games In Folder", "I")
 				self.out.emit("No unscraped games in this folder. Exiting...")
 
+
+
+		# A General Finish for all scraping Modules once done
 		self.complete.emit()
 
 
 
+# Seperate ScreenScraper Runnable Classes.
+# Why?
+# Multithreading. That's why.
 
-	# Actual Scraping functions can go here,
-	# Typically for use with multithreading (**later**)
+# Signals because for legal reasons QRunnables cannot have signals
+class ScreenScraperRunnableSignals(QObject):
+	out = pyqtSignal(str)
+	bar = pyqtSignal(int, int, int)
+	termall = pyqtSignal()
+	finished = pyqtSignal()
 
-	def screenscraper(self, game_name, game_path, baseurl, system_info):
+# The ScreenScraper worker
+class ScreenScraperRunnable(QRunnable):
+
+	data = []
+	options_loc = []
+	ss_inputs = []
+
+	# Functions
+	def __init__(self, data_i, opt_main, ss_in):
+		super(ScreenScraperRunnable, self).__init__()
+		self.data = data_i
+		self.options_loc = opt_main
+		self.ss_inputs = ss_in
+
+		self.sig = ScreenScraperRunnableSignals()
+
+	def run(self):
+
+		# Thread Initialized
+		log("Thread Start", "D", True)
+
+		log(str(self.data), "D", True)
+		log(str(self.options_loc), "D", True)
+		log(str(self.ss_inputs), "D", True)
+
+
+
+		# Thread Data
+
+		game_name = self.ss_inputs[0]
+		game_path = self.ss_inputs[1]
+		baseurl = self.ss_inputs[2]
+		system_info = self.ss_inputs[3]
+
+
+
+		#
+		# Now let's begin Scraping, threaded Scraping.
+		#
 
 		continue_scrape = True
 
@@ -611,17 +739,17 @@ class ScrapeTask(QObject):
 			infoappend = "(This may take a while)"
 
 		# MD5
-		self.out.emit(f"Processing MD5 Hash (1/3) for {game_name} {infoappend}...")
+		self.sig.out.emit(f"Processing MD5 Hash (1/3) for {game_name} {infoappend}...")
 		hash_md5 = hashlib.md5(open(game_path, 'rb').read()).hexdigest()
 		log(f"MD5 Hash: {hash_md5}", "D", True)
 
 		# SHA1
-		self.out.emit(f"Processing SHA1 Hash (2/3) for {game_name} {infoappend}...")
+		self.sig.out.emit(f"Processing SHA1 Hash (2/3) for {game_name} {infoappend}...")
 		hash_sha1 = hashlib.sha1(open(game_path, 'rb').read()).hexdigest()
 		log(f"SHA1 Hash: {hash_sha1}", "D", True)
 
 		# CRC32
-		self.out.emit(f"Processing CRC32 Hash (3/3) for {game_name} {infoappend}...")
+		self.sig.out.emit(f"Processing CRC32 Hash (3/3) for {game_name} {infoappend}...")
 		hash_crc32 = zlib.crc32(open(game_path, 'rb').read())
 		log(f"CRC32 Hash: {hash_crc32}, CRC32 Hex-Formatted Hash: {hex(hash_crc32)[2:]}", "D", True)
 
@@ -630,85 +758,76 @@ class ScrapeTask(QObject):
 		# Generate URL
 		url = baseurl + "&crc=" + hex(hash_crc32)[2:] + "&md5=" + hash_md5 + "&sha1=" + hash_sha1 + "&systemeid=" + str(system_info[0]) + "&romtype=rom&romnom=" + os.path.basename(game_path) + "&romtaille=" + str(game_size)
 
-		if not(self.ss_stopall):
-			log(f"Attempting to get page for {game_name}", "I")
-			try:
-				self.out.emit(f"Getting Metadata Page For {game_name}")
-				page = requests.get(url, timeout=15)
-				log("Page Request Successful", "D", True)
-			except Exception as e:
-				self.out.emit("Sorry, there was a network error.")
-				log(f"ERROR: {e}", "D", True)
-				continue_scrape = False
-		else:
-			log(f"Cannot Continue for {game_name}, stop requested.", "D", True)
+		# Request URL
+		log(f"Attempting to get page for {game_name}", "I")
+		try:
+			self.sig.out.emit(f"Getting Metadata Page For {game_name}")
+			page = requests.get(url, timeout=15)
+			log(f"({game_name}) Page Request Successful", "D", True)
+		except Exception as e:
+			self.sig.out.emit("Sorry, there was a network error.")
+			log(f"({game_name}) ERROR: {e}", "W")
+			continue_scrape = False
 
-		print(f"URL: \n{url}")
-
-		if continue_scrape and not(self.ss_stopall):
-
-			# Check for errors returned by the response if invalid
+		if continue_scrape:
 
 			# These first 4 indicate a global issue, so stop all scraping if seen
+			# Yes, I know we checked for these while getting user information, but if there is no user or the API goes down while this happens, then I'll be vindicated.
 			if "API totalement fermé" in page.text:
-				self.out.emit("The ScreenScraper API is down right now. Exiting...")
-				log(f"ScreenScraper Request Error: API Down", "I")
-				self.ss_stopall = True
-				self.complete.emit()
+				self.sig.out.emit("The ScreenScraper API is down right now. Exiting...")
+				log(f"({game_name}) ScreenScraper Request Error: API Down", "I")
+				self.sig.termall.emit()
 			if "Le logiciel de scrape utilisé a été blacklisté" in page.text:
-				self.out.emit("Bigscraper-qt has been blacklisted. Exiting...")
-				log(f"ScreenScraper Request Error: App Blacklisted", "I")
-				self.ss_stopall = True
-				self.complete.emit()
+				self.sig.out.emit("Bigscraper-qt has been blacklisted. Exiting...")
+				log(f"({game_name}) ScreenScraper Request Error: App Blacklisted", "I")
+				self.sig.termall.emit()
 			if "Votre quota de scrape est" in page.text:
-				self.out.emit("Your daily ScreenScraper scraping limit has been reached, try again tomorrow.")
-				log(f"ScreenScraper Request Error: Daily Quota Reached", "I")
-				self.ss_stopall = True
-				self.complete.emit()
+				self.sig.out.emit("Your daily ScreenScraper scraping limit has been reached, try again tomorrow.")
+				log(f"({game_name}) ScreenScraper Request Error: Daily Quota Reached", "I")
+				self.sig.termall.emit()
 			if ("API fermé pour les non membres" in page.text) or ("API closed for non-registered members" in page.text):
-				self.out.emit("ScreenScraper is down for unregistered users, Exiting...")
-				log(f"ScreenScraper Request Error: Server Down for Unregistered users.", "I")
-				self.ss_stopall = True
-				self.complete.emit()
+				self.sig.out.emit("ScreenScraper is down for unregistered users, Exiting...")
+				log(f"({game_name}) ScreenScraper Request Error: Server Down for Unregistered users.", "I")
+				self.sig.termall.emit()
 
 			# This one is just a local problem, so other games can continue even if this one is bad
 			if "Champ crc, md5 ou sha1 erroné" in page.text:
-				self.out.emit("Your Game file's hashes are incorrect. Exiting...")
-				log(f"ScreenScraper Request Error: Incorrect File Hashes (check the hashes of your files)", "I")
+				self.sig.out.emit(f"The Game File hashes for {game_name} are incorrect. Skipping...")
+				log(f"({game_name}) ScreenScraper Request Error: Incorrect File Hashes (check the hashes of your files)", "I")
 				continue_scrape = False
 
 
-			if continue_scrape and not(self.ss_stopall):
+			if continue_scrape:
 				# Scan for content (if request is successful)
 				page_content = page.json()
 
 				# Check if file returned is empty
 				if not(page_content):
-					self.out.emit("ScreenScraper Returned Nothing. Exiting...")
-					log(f"The JSON File ScreenScraper Returned is empty. ScreenScraper is probably down.", "I")
+					self.sig.out.emit(f"ScreenScraper Returned Nothing for {game_name}. Skipping...")
+					log(f"({game_name}) The JSON File ScreenScraper Returned is empty. ScreenScraper is probably down.", "I")
 					continue_scrape = False
 
-				# Check if any errors were returned by ScreenScraper
-				if continue_scrape and not(self.ss_stopall):
+				if continue_scrape:
+					# Check if any errors were returned by ScreenScraper
 					if not(page_content["header"]["success"] == "true"):
-						self.out.emit(f"ScreenScraper Error: {page_content['header']['error']}. Exiting...")
-						log(f"ScreenScraper Returned An Error: {page_content['header']['error']}", "I")
+						self.sig.out.emit(f"({game_name}) ScreenScraper Error: {page_content['header']['error']}. Skipping...")
+						log(f"({game_name}) ScreenScraper Returned An Error: {page_content['header']['error']}", "I")
 						continue_scrape = False
 
 					# Check if you've exceeded the daily request limit
 					reqs_today = int(page_content["response"]["ssuser"]["requeststoday"])
 					reqs_max = int(page_content["response"]["ssuser"]["maxrequestsperday"])
 					if (reqs_today >= reqs_max):
-						self.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
-						log("You've exceeded the Max Daily Requests.", "I")
-						self.ss_stopall = True
+						self.sig.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
+						log(f"({game_name}) You've exceeded the Max Daily Requests.", "I")
+						self.sig.termall.emit()
 
-					self.ss_maxthreads = int(page_content["response"]["ssuser"]["maxthreads"])
 
-					# Last check before metadata is actually scraped
-					if continue_scrape and not(self.ss_stopall):
-						self.out.emit(f"Collecting Metadata for {game_name}")
-						log("Collecting Game Metadata", "I")
+
+					# Now we can scrape.
+					if continue_scrape:
+						self.sig.out.emit(f"Collecting Metadata for {game_name}")
+						log(f"({game_name}) Collecting Game Metadata", "I")
 
 						game_raw = page_content["response"]["jeu"]
 						meta = {}
@@ -737,6 +856,10 @@ class ScrapeTask(QObject):
 										meta["Release Date"] = [calendar_month_rev[rd_raw[1]] + " " + rd_raw[2] + ", " + rd_raw[0]]
 										log("Adding Game Release", "D", True)
 										break
+
+
+						#log(f"Game File: {(meta['File'])}", "D", True)
+						log(f"Game Name: {(meta['Name'])}", "D", True)
 
 						# Also scan each language for data relevant to it
 						langlist = langs_ss[self.options_loc["region"]]
@@ -772,8 +895,6 @@ class ScrapeTask(QObject):
 								idx += 1
 						meta["Genres"] = genrelist
 
-
-
 						# Platform
 						log("Getting Platform", "D", True)
 						meta["Platform"] = [system_info[2]]
@@ -796,9 +917,10 @@ class ScrapeTask(QObject):
 
 
 						# Media Scraping
-						log("Starting to Get Media", "I", True)
-						self.out.emit(f"Downloading Images for {meta['Name'][0]}")
-						self.bar.emit(1, 1, 0)
+						log(f"Getting Media for {meta['Name'][0]}", "I", True)
+						self.sig.out.emit(f"Downloading Images for {meta['Name'][0]}")
+						self.sig.bar.emit(1, 1, 0)
+						self.sig.bar.emit(3, 0, len(game_raw["medias"]))
 
 						iidx = 0
 						images = []
@@ -830,7 +952,7 @@ class ScrapeTask(QObject):
 								# Actually Download the Image
 								log(f"Downloading Media ({idx + 1} / {len(game_raw['medias'])}) (for {meta['Name'][0]})", "I")
 
-								if (not(os.path.isfile(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + image_id + "." + media["format"]))) and (not(self.ss_stopall)):
+								if (not(os.path.isfile(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + image_id + "." + media["format"]))):
 									try:
 										image_data = requests.get(murl, timeout=15)
 										# Write it to a file
@@ -839,7 +961,7 @@ class ScrapeTask(QObject):
 									except Exception as e:
 										log(f"Download Error: {e}", "D", True)
 										iidx += 1
-										self.bar.emit(3, iidx, len(game_raw["medias"]))
+										self.sig.bar.emit(3, iidx, len(game_raw["medias"]))
 										continue
 
 								images.append(image_id)
@@ -848,23 +970,16 @@ class ScrapeTask(QObject):
 								log("This image is not unique or is already downloaded.", "D", True)
 
 							iidx += 1
-							self.bar.emit(3, iidx, len(game_raw["medias"]))
+							self.sig.bar.emit(3, iidx, len(game_raw["medias"]))
 
 						meta["Images"] = images
-						self.bar.emit(1, 0, 0)
+						self.sig.bar.emit(1, 0, 0)
 
 						# Get Video
 						log(f"Checking if Video Download is Needed for {meta['Name'][0]}", "D", True)
-						log(str(self.options_loc["video"]), "D", True)
-						log(str("Video Link" in meta), "D", True)
-						log(str(self.ss_stopall), "D", True)
+						if (self.options_loc["video"]) and ("Video Link" in meta) and not(os.path.isfile(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + meta["Name"][0] + " - Video" + ".mp4")):
 
-						if ("Video Link" in meta):
-							log(meta["Video Link"][0], "D", True)
-
-						if (self.options_loc["video"]) and ("Video Link" in meta) and not(os.path.isfile(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + meta["Name"][0] + " - Video" + ".mp4")) and (not(self.ss_stopall)):
-
-							self.out.emit(f"Downloading Video for {meta['Name'][0]}")
+							self.sig.out.emit(f"Downloading Video for {meta['Name'][0]}")
 							log(f"Downloading Video for {meta['Name'][0]}", "D", True)
 							try:
 								video_data = requests.get(meta["Video Link"][0], timeout=15)
@@ -878,9 +993,6 @@ class ScrapeTask(QObject):
 								video_data = requests.get(meta["Video Link"][0], timeout=15)
 								meta["Video Link"] = [meta["Video Link"][0].replace("Fr75s", "[DEVID]").replace(unstuff("169;216;221;197;183;184;141;180;163;214;234"), "[DEVPASS]")]
 
-						if (self.ss_stopall):
-							self.out.emit("Global API Error Detected. Wrapping Up...")
-
 						# Write Metadata to [game_name].json
 						meta_json = json.dumps(meta, indent = 4)
 						log("Writing Metadata to File", "D", True)
@@ -888,3 +1000,5 @@ class ScrapeTask(QObject):
 
 
 
+		# And Finish.
+		self.sig.finished.emit()
