@@ -45,12 +45,14 @@
             <li><a href="#mae-modules">Modules</a>
               <ul>
                 <li><a href="#mae-modules-launchbox">LaunchBox</a></li>
+                <li><a href="#mae-modules-screenscraper">ScreenScraper</a></li>
                 <li><a href="#mae-modules-adb">Arcade Database</a></li>
               </ul>
             </li>
             <li><a href="#mae-exports">Export Formats</a>
               <ul>
                 <li><a href="#mae-exports-pegasus">Pegasus</a></li>
+                <li><a href="#mae-exports-lpegasus">Pegasus (Lutris IDs)</a></li>
                 <li><a href="#mae-exports-es">EmulationStation</a></li>
               </ul>
             </li>
@@ -327,6 +329,20 @@
         The Metadata provided by LaunchBox is great, providing many details and clear images for most games. LaunchBox provides a large variety of images, from box art to logos to physical media.
       </p>
 
+      <h4 id="mae-modules-screenscraper" class="left splitlite bold">ScreenScraper</h4>
+      <p>
+        <a href="https://www.screenscraper.fr/">Website</a><br>
+      </p>
+      <p>
+        ScreenScraper serves as a very good scraping service alongside LaunchBox. Bigscraper-qt added support for ScreenScraper in version 1.4.0.
+        <br><br>
+        ScreenScraper has most of the same systems as LaunchBox (that is, most systems), but is not recommended to use with arcade games.
+        <br><br>
+        ScreenScraper requires the files for games to match their database of hashes, meaning the files you scrape must actually be the games they are. It is also recommended to follow a file naming scheme of "Game's Name (REG).type" as this allows the title of the game to match, acting as a failsafe.
+        <br><br>
+        ScreenScraper provides most types of media and metadata, and is better than LaunchBox for Videos.
+      </p>
+
       <h4 id="mae-modules-adb" class="left splitlite bold">Arcade Database (ADB)</h4>
       <p>
         <a href="http://adb.arcadeitalia.net/default.php">Website</a><br>
@@ -354,6 +370,13 @@
         Pegasus frontend is a highly customizable frontend tool that allows you to load QML-based themes. Bigscraper-qt added support for Pegasus in version 1.0.0.
         <br><br>
         Exporting to Pegasus generates a metadata.pegasus.txt document, as well as a media folder. Note that launch commands are not automatically added: Please refer to <a href="#commands">the launch command section</a> to find out how to get proper launch commands.
+      </p>
+
+      <h4 id="mae-exports-lpegasus" class="left splitlite bold">Pegasus (Lutris IDs)</h4>
+      <p>
+        Pegasus (Lutris IDs) also exports as the metadata.pegasus.txt format for Pegasus Frontend, except for replacing file names with their corresponding lutris IDs. This makes it so metadata refers to games' installs on Lutris rather than the files themselves, allowing you to customize launch options with Lutris.
+        <br>
+        Pegasus (Lutris IDs) requires an internet connection to export, as it must go online to find each game's Lutris ID.
       </p>
 
       <h4 id="mae-exports-es" class="left splitlite bold">EmulationStation</h4>

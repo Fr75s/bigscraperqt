@@ -185,7 +185,7 @@ Item {
 
 	Timer {
 		id: typeSearchClearTimer
-		interval: 3000
+		interval: 1500
 
 		running: false
 		repeat: false
