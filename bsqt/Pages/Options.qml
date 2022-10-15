@@ -55,7 +55,7 @@ Item {
 				{
 					id: "subScraping",
 					type: "label",
-					title: "Scraping Options"
+					title: "Scraping"
 				},
 
 				{
@@ -128,7 +128,7 @@ Item {
 				},
 
 				{
-					id: "module",
+					id: "optScreenScraperUser",
 					type: "inputSetting",
 					title: "Username",
 					setting: "screenScraperUser",
@@ -136,14 +136,33 @@ Item {
 					info: ""
 				},
 				{
-					id: "module",
+					id: "optScreenScraperPass",
 					type: "inputSetting",
 					title: "Password",
 					setting: "screenScraperPass",
 					initialChoice: optionValuesInit["screenScraperPass"],
 					pass: true,
 					info: ""
-				}
+				},
+
+				{
+					id: "subData",
+					type: "label",
+					title: "Data"
+				},
+				{
+					id: "actClearAll",
+					type: "action",
+					title: "Clear Entire Cache",
+					setting: "clearCacheAll",
+					actionIcon: "delete",
+
+					confirm: true,
+
+					info: "This option clears all stored data for all systems. Use this only if you want to free up a lot of storage. You will need to rescrape everything if you use this, so have some caution beforehand.",
+					infoType: InfoModal.InfoIcon.Warning
+				},
+
 
 			].forEach(function(e) { optionEntries.append(e); });
 		}
@@ -250,6 +269,40 @@ Item {
 				}
 			}
 
+			ButtonLabelRow {
+				visible: (type == "action")
+
+				id: actionButton
+				width: infoIndicator.visible ? parent.width - infoIndicator.width - 16 - (anchors.rightMargin * 2) : parent.width - (anchors.rightMargin * 2)
+				height: parent.height * 0.8
+
+				focused: (index == optsView.currentIndex && type == "action")
+
+				anchors.right: parent.right
+				anchors.rightMargin: pageWidthOffset / 2
+
+				anchors.top: parent.top
+				anchors.topMargin: parent.height * 0.1
+
+				label: title
+				btnIcon: (actionIcon ? actionIcon : "")
+
+				function pushAction() {
+					optsView.currentIndex = index
+					if (confirm) {
+						confirmSelectModal.title = "Are You Sure?"
+						confirmSelectModal.invoke(["Yes", "No"])
+					} else {
+						root.action(setting)
+					}
+				}
+			}
+
+			function confirmAction(set, data) {
+				if (data == "Yes")
+					root.action(set)
+			}
+
 			TextInputLabelRow {
 				visible: (type == "inputSetting")
 
@@ -352,6 +405,14 @@ Item {
 
 		function dataOperation(data) {
 			optsView.currentItem.selectAction(optionEntries.get(optsView.currentIndex).setting, data)
+		}
+	}
+
+	SelectModal {
+		id: confirmSelectModal
+
+		function dataOperation(data) {
+			optsView.currentItem.confirmAction(optionEntries.get(optsView.currentIndex).setting, data)
 		}
 	}
 

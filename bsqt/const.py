@@ -7,7 +7,7 @@ from PyQt5.QtCore import *
 ## Genral Information
 info = {
 	"NAME": "bigscraper-qt",
-	"VERSION": "1.4.0",
+	"VERSION": "1.4.1",
 	"AUTHOR": "Fr75s",
 	"LICENSE": "GPLv3",
 	"URL": "https://fr75s.github.io/bigscraperqt/"
@@ -139,6 +139,7 @@ optionsVary = {
 	"region": "North America",
 	"module": "LaunchBox",
 	"languageOverride": "None",
+	"maxLogFiles": 50,
 	"screenScraperUser": "",
 	"screenScraperPass": ""
 }

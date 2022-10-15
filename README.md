@@ -55,6 +55,5 @@ Then, simply run one of the following, depending on which version to build:
 A list of new planned features are below.
 
 - Flathub Release
-- Different Scraping Sources (more than 2)
-- Asynchronous scraping (even more efficient)
-- Clearing Cached data from application
+- LaunchBox Asynchronous Scraping
+- Clearing Cached data by system

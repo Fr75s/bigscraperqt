@@ -607,8 +607,17 @@ class ScrOneTask(QObject):
 						for uncat_release in game_raw["dates"]:
 							if uncat_release["region"] == reg:
 								rd_raw = uncat_release["text"].split("-")
-								meta["Release Date"] = [calendar_month_rev[rd_raw[1]] + " " + rd_raw[2] + ", " + rd_raw[0]]
+
 								log("Adding Game Release", "D", True)
+								if len(rd_raw) == 3:
+									log("Full Date Available", "D", True)
+									meta["Release Date"] = [calendar_month_rev[rd_raw[1]] + " " + rd_raw[2] + ", " + rd_raw[0]]
+								elif len(rd_raw) == 1:
+									log("Only Year Available", "D", True)
+									meta["Release Date"] = [rd_raw[0]]
+								else:
+									log(f"Unknown Date Format, Not applying. ({rd_raw})", "D", True)
+
 								break
 
 				# Also scan each language for data relevant to it

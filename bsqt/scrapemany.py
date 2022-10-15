@@ -586,6 +586,7 @@ class ScrapeTask(QObject):
 						self.out.emit(f"Getting User Page")
 						user_page = requests.get(url_base.replace("jeuInfos", "ssuserInfos"), timeout=15)
 						log("Page Request Successful", "D", True)
+
 					except Exception as e:
 						self.out.emit("Sorry, there was a network error.")
 						log(f"ERROR: {e}", "W")
@@ -619,6 +620,8 @@ class ScrapeTask(QObject):
 
 					log(f"ScreenScraper Requests As of this line: {reqs_today}", "D", True)
 					log(f"Maximum alotted requests: {reqs_max}", "D", True)
+
+					log(f"Your Level: {user_page_content['response']['ssuser']['niveau']} (will be helpful for me to mimic your thread count)", "D", True)
 
 					self.ss_maxthreads = int(user_page_content["response"]["ssuser"]["maxthreads"])
 					log(f"Max number of threads: {self.ss_maxthreads}", "D", True)
@@ -707,13 +710,12 @@ class ScreenScraperRunnable(QRunnable):
 	def run(self):
 
 		# Thread Initialized
+		log("-----")
 		log("Thread Start", "D", True)
 
 		log(str(self.data), "D", True)
 		log(str(self.options_loc), "D", True)
-		log(str(self.ss_inputs), "D", True)
-
-
+		log(str([self.ss_inputs[0], self.ss_inputs[1], self.ss_inputs[3]]), "D", True)
 
 		# Thread Data
 
@@ -853,8 +855,17 @@ class ScreenScraperRunnable(QRunnable):
 								for uncat_release in game_raw["dates"]:
 									if uncat_release["region"] == reg:
 										rd_raw = uncat_release["text"].split("-")
-										meta["Release Date"] = [calendar_month_rev[rd_raw[1]] + " " + rd_raw[2] + ", " + rd_raw[0]]
+
 										log("Adding Game Release", "D", True)
+										if len(rd_raw) == 3:
+											log("Full Date Available", "D", True)
+											meta["Release Date"] = [calendar_month_rev[rd_raw[1]] + " " + rd_raw[2] + ", " + rd_raw[0]]
+										elif len(rd_raw) == 1:
+											log("Only Year Available", "D", True)
+											meta["Release Date"] = [rd_raw[0]]
+										else:
+											log(f"Unknown Date Format, Not applying. ({rd_raw})", "D", True)
+
 										break
 
 
@@ -893,6 +904,7 @@ class ScreenScraperRunnable(QRunnable):
 											log(f"Adding this genre ({idx})", "D", True)
 											break
 								idx += 1
+
 						meta["Genres"] = genrelist
 
 						# Platform

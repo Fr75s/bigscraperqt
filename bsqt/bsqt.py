@@ -271,6 +271,22 @@ class MainAppBackend(QObject):
 		save_options()
 
 
+	def perform_action(self, action):
+		log(f"Performing Action {action}", "I")
+
+		if (action == "clearCacheAll"):
+			shutil.rmtree(paths["METADATA"])
+			os.makedirs(paths["METADATA"])
+			shutil.rmtree(paths["MEDIA"])
+			os.makedirs(paths["MEDIA"])
+			shutil.rmtree(paths["EXTRA"])
+			os.makedirs(paths["EXTRA"])
+
+			log(f"All bigscraper-qt directories cleared.", "I")
+
+		save_options()
+
+
 	def send_input_event(self, input_event, val):
 		self.inputEvent.emit(input_event, val)
 
@@ -333,6 +349,7 @@ class MainAppBackend(QObject):
 
 def init_filesystem():
 	global options
+
 	# Initialize Directories & Files
 	if not(os.path.isdir(paths["OPTS"])):
 		os.makedirs(paths["OPTS"])
@@ -358,6 +375,25 @@ def init_filesystem():
 		log("Creating options file", "I")
 		save_options()
 
+	# Delete old logs
+	if os.path.isdir(paths["LOGS"]):
+		if len(os.listdir(paths["LOGS"])) > optionsVary["maxLogFiles"]:
+
+			# Get every log file that is actually a file
+			log_list = []
+			for f in os.listdir(paths["LOGS"]):
+				if not(os.path.isdir(os.path.join(paths["LOGS"], f))):
+					if not(os.path.islink(os.path.join(paths["LOGS"], f))):
+						log_list.append(f)
+
+			log_list.sort()
+			log(log_list, "D", True)
+
+			delete_log_list = log_list[0:(-1 * optionsVary["maxLogFiles"])]
+			log(f"Deleting These logs: {delete_log_list}", "I", True)
+
+			for f in delete_log_list:
+				os.remove(os.path.join(paths["LOGS"], f))
 
 
 
@@ -390,6 +426,7 @@ def main():
 	root.doneloading.connect(backend.on_load)
 	root.checkforcontroller.connect(backend.reinit_controller)
 	root.togopt.connect(backend.toggle_option)
+	root.action.connect(backend.perform_action)
 	root.setopt.connect(backend.set_option)
 	root.log.connect(backend.log_qml)
 

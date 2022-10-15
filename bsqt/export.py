@@ -49,7 +49,7 @@ class ExportTask(QObject):
 			valid = False
 
 		# Split Based on Pegasus / EmulationStation Export
-		if (out_format == "Pegasus Frontend" or out_format == "Pegasus Frontend (Lutris IDs)"):
+		if (out_format == "Pegasus Frontend" or out_format == "Pegasus Frontend (Lutris IDs)") and valid:
 			# Export For Pegasus
 			self.out.emit("Exporting For Pegasus...")
 			log("Format: PEGASUS", "I")
@@ -62,8 +62,36 @@ class ExportTask(QObject):
 			output.append("collection: " + system_name)
 			output.append("shortname: " + system)
 
+			# Get command
 			if not(uselutris):
-				output.append("command: [INSERT COMMAND HERE]")
+				# Preserve old command
+				if os.path.isfile(os.path.join(out_folder, "metadata.pegasus.txt")):
+					# Read the old file
+					log("Old file exists, getting old command", "I")
+					old_file_lines = open(os.path.join(out_folder, "metadata.pegasus.txt"), "r").readlines()
+
+					# Parse the old file for the "command: [command]" line
+					lidx = 0
+					old_command = ""
+					while not("game" in old_file_lines[lidx]):
+						cl = old_file_lines[lidx]
+						if "command" in cl:
+							# Get the command
+							old_command = cl[cl.index(":")+2:-1]
+							log(f"Old Command: {old_command}", "I")
+							break
+						lidx += 1
+
+					# Check if we've found an old command
+					if old_command != "":
+						log("Appending old command", "I")
+						output.append("command: " + old_command)
+					else:
+						output.append("command: [INSERT COMMAND HERE]")
+
+				else:
+					# No old file to add old command
+					output.append("command: [INSERT COMMAND HERE]")
 
 			completed = 0
 
@@ -248,72 +276,6 @@ class ExportTask(QObject):
 				for o in output_imgs:
 					output.append(output_imgs[o])
 
-				## Iterate through every art
-				#for art in pegasus_artconv:
-					#if not(os.path.isdir(os.path.join(out_folder, "media", art))):
-						#os.makedirs(os.path.join(out_folder, "media", art), exist_ok=True)
-
-					#for img in meta["Images"]:
-						#if art in img:
-
-							#image_exists = False
-							#for reg in regions[self.options_loc["region"]]:
-								#if reg in img:
-									#image_exists = True
-
-									## Copy Image
-									#shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png", os.path.join(out_folder, "media", art) + "/" + img + ".png")
-									## Add to Output
-									#output.append("assets." + art + ": " + os.path.join(out_folder, "media", art) + "/" + img + ".png")
-							#if not(image_exists) and not("(" in img)
-
-				#for img in meta["Images"]:
-					## Get all arts
-					#for art in pegasus_artconv:
-						## Get all locales
-
-						## Check if image has no locale
-						#if not("(" in img):
-							## Image has no locale: Copy over
-							#if (art in img):
-								## Match Found: Copy Over and add it.
-								#art_found = True
-
-								## Ensure destination media folder exists
-								#if not(os.path.isdir(os.path.join(out_folder, "media", art))):
-									#os.makedirs(os.path.join(out_folder, "media", art), exist_ok=True)
-
-								## Get file
-								#img_file_raw = os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png"
-								## Copy File
-								#shutil.copyfile(img_file_raw, os.path.join(out_folder, "media", art) + "/" + img + ".png")
-								## Add to Output
-								#output.append("assets." + art + ": " + os.path.join(out_folder, "media", art) + "/" + img + ".png")
-								#break
-						#else:
-							#art_found = False
-							#for reg in regions[self.options_loc["region"]]:
-								## Check for 2 things:
-								## 1. The corresponding art is in the image title
-								## 2. The image matches with any of the chosen locales
-								#if (art in img) and (reg in img):
-									## Match Found: Copy over and add it.
-									#art_found = True
-
-									## Ensure destination media folder exists
-									#if not(os.path.isdir(os.path.join(out_folder, "media", art))):
-										#os.makedirs(os.path.join(out_folder, "media", art), exist_ok=True)
-
-									## Get file
-									#img_file_raw = os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png"
-									## Copy File
-									#shutil.copyfile(img_file_raw, os.path.join(out_folder, "media", art) + "/" + img + ".png")
-									## Add to Output
-									#output.append("assets." + art + ": " + os.path.join(out_folder, "media", art) + "/" + img + ".png")
-									#break
-							#if art_found:
-								#break
-
 				# Copy Video if it exists
 				for f in os.listdir(os.path.join(paths["MEDIA"], system, game_form)):
 					if "Video" in f:
@@ -344,7 +306,7 @@ class ExportTask(QObject):
 			self.bar.emit(0, 0, 0)
 			self.out.emit("Finished Output. Exiting...")
 
-		elif (out_format == "EmulationStation"):
+		elif (out_format == "EmulationStation") and valid:
 			self.out.emit("Exporting For EmulationStation...")
 			log("Format: EmulationStation", "I")
 
@@ -492,9 +454,6 @@ class ExportTask(QObject):
 
 			self.bar.emit(0, 0, 0)
 			self.out.emit("Finished Output. Exiting...")
-
-
-
 
 
 

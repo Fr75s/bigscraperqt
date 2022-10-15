@@ -25,8 +25,10 @@ ApplicationWindow {
 	signal runtask(int taskID, var taskData)
 	signal doneloading()
 	signal checkforcontroller()
+
 	signal togopt(string option)
 	signal setopt(string option, string value)
+	signal action(string actionid)
 
 	signal log(string msg)
 	signal initOptions()
