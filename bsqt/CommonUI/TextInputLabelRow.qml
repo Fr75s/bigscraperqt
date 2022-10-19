@@ -59,7 +59,7 @@ Item {
 			font.pixelSize: height * 0.65
 			verticalAlignment: Text.AlignVCenter
 
-			//echoMode: passinput ? TextInput.PasswordEchoOnEdit : TextInput.Normal
+			echoMode: passinput ? TextInput.PasswordEchoOnEdit : TextInput.Normal
 
 			onEditingFinished: {
 				enterAction(txtLblRowInput.text)

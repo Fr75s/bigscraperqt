@@ -100,16 +100,6 @@ Item {
 					infoType: InfoModal.InfoIcon.Warning
 				},
 				{
-					id: "optLocalPaths",
-					type: "setting",
-					title: "Use Local Paths",
-					setting: "localPaths",
-					initial: defopts[4],
-
-					info: "This option toggles whether exported files use local paths or full paths for games, e.g. <tt>[Game.rom]</tt> vs <tt>[/path/to/Game.rom]</tt>.<br><br>This is recommended for console ROMs as it allows you to easily transfer metadata along with your games to other devices.<br>This is not recommended for PC Games, as their executables are likely installed in different directories from eachother.",
-					infoType: InfoModal.InfoIcon.Info
-				},
-				{
 					id: "optRecache",
 					type: "setting",
 					title: "Recache Mode",
@@ -117,6 +107,23 @@ Item {
 					initial: defopts[3],
 
 					info: "Recache mode allows you to redownload previously scraped data, useful if a new feature is implemented that adds to scraped data.<br>It is recommended to turn this off as this uses more bandwidth than necessary, as with recache mode, you always redownload everything.",
+					infoType: InfoModal.InfoIcon.Info
+				},
+
+
+				{
+					id: "subExporting",
+					type: "label",
+					title: "Exporting"
+				},
+				{
+					id: "optLocalPaths",
+					type: "setting",
+					title: "Use Local Paths",
+					setting: "localPaths",
+					initial: defopts[4],
+
+					info: "This option toggles whether exported files use local paths or full paths for games, e.g. <tt>[Game.rom]</tt> vs <tt>[/path/to/Game.rom]</tt>.<br><br>This is recommended for console ROMs as it allows you to easily transfer metadata along with your games to other devices.<br>This is not recommended for PC Games, as their executables are likely installed in different directories from eachother.",
 					infoType: InfoModal.InfoIcon.Info
 				},
 

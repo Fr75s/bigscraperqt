@@ -390,6 +390,11 @@ class ExportTask(QObject):
 							valid_image_exists = True
 							# Check for file
 							if (os.path.isfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png")):
+
+								# Ensure Output folder exists
+								if not(os.path.isdir(os.path.join(out_folder, "media", "boxFront"))):
+									os.makedirs(os.path.join(out_folder, "media", "boxFront"), exist_ok=True)
+
 								# Copy File
 								log(f"Copying {img}.png to folder", "D", True)
 								shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + img + ".png", os.path.join(out_folder, "media", "boxFront") + "/" + img + ".png")
@@ -428,6 +433,10 @@ class ExportTask(QObject):
 				for f in os.listdir(os.path.join(paths["MEDIA"], system, game_form)):
 					if video_title in f:
 						log(f"Copying {f} to video folder", "D", True)
+
+						# Ensure destination media folder exists
+						if not(os.path.isdir(os.path.join(out_folder, "media", "video"))):
+							os.makedirs(os.path.join(out_folder, "media", "video"), exist_ok=True)
 
 						shutil.copyfile(os.path.join(paths["MEDIA"], system, game_form) + "/" + f, os.path.join(out_folder, "media", "video") + "/" + f)
 
