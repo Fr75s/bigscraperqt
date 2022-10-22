@@ -32,8 +32,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://github.com/Fr75s/bigscraperqt/archive/refs/tags/v1.4.0.tar.gz",
-                    "sha256": "b9b4dfa7a037d9f4ba70313c6be371f69eefc1f3bf4decbdfeb0be644ccd7fb6"
+                    "url": "https://github.com/Fr75s/bigscraperqt/archive/refs/tags/v1.4.1.tar.gz",
+                    "sha256": "770bcfb22ad552f8e701aeafc013b4e4c81fdb3edc0f0f0267bfe4ed5ca1a44c"
                 }
             ],
             "modules": [

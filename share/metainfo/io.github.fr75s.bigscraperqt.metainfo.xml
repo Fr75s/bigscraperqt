@@ -43,6 +43,22 @@
   <content_rating type="oars-1.0" />
 
   <releases>
+    <release version="1.4.1" date="2022-10-22">
+	  <description>
+		<p>Bigscraper-qt 1.4.1 adds these features:</p>
+        <ul>
+          <li>Log Clearing</li>
+          <li>Clear Cache Option</li>
+          <li>Extra Systems under ScreenScraper</li>
+        </ul>
+        <p>Bigscraper-qt 1.4.1 also provides these fixes:</p>
+        <ul>
+          <li>Launch Commands are now preserved</li>
+          <li>Exporting to EmulationStation crashing</li>
+          <li>ScreenScraper release date issue</li>
+        </ul>
+	  </description>
+	</release>
     <release version="1.4.0" date="2022-10-12">
 	  <description>
 		<p>Bigscraper-qt 1.4.0 adds these features:</p>
