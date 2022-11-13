@@ -106,7 +106,7 @@ class ExportTask(QObject):
 				output.append("")
 
 				# Get The Name, which must exist.
-				game_form = form(meta["Name"][0])
+				game_form = form(trimext(meta_file_raw))
 				output.append("game: " + meta["Name"][0])
 
 				# If we're using lutris IDs, start the process, otherwise, get files as normal.

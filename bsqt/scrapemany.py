@@ -1004,7 +1004,7 @@ class ScreenScraperRunnable(QRunnable):
 							# If the image is unique, download it.
 							if not(image_id in images) and (image_id != ""):
 								# Actually Download the Image
-								log(f"Downloading Media ({idx + 1} / {len(game_raw['medias'])}) (for {meta['Name'][0]})", "I")
+								log(f"Downloading Media ({iidx + 1} / {len(game_raw['medias'])}) (for {meta['Name'][0]})", "I")
 
 								if (not(os.path.isfile(os.path.join(paths["MEDIA"], system_info[1], game_name) + "/" + image_id + "." + media["format"]))):
 									try:

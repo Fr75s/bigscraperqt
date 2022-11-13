@@ -79,7 +79,18 @@ def form(text):
 	out = unidecode.unidecode(out)
 
 	# Numerous Character Replacements
-	return out.upper().strip(" ").replace(" -","").replace(": ","_").replace(" ","_").replace(":","_").replace("-","_").replace(".","").replace("!","").replace("?","").replace("'","").replace("&","AND")
+	out = out.upper().strip(" ").replace(" -","").replace(": ","_").replace(" ","_").replace(":","_").replace("-","_").replace(".","").replace("!","").replace("?","").replace("'","").replace("&","AND")
+
+	# Remove Consecutive _s
+	out2 = ""
+	for n in range(0, len(out)):
+		if (out[n:n+1] == "_" and out[n+1:n+2] == "_"):
+			log(f"DUPLICATE _ AT {n}", "D", True)
+		else:
+			out2 += out[n:n+1]
+
+	# Resulting string should be fit
+	return out2
 
 def linkform(text):
 	return text.upper().strip(" ").replace(" ","+")
