@@ -23,6 +23,7 @@ class ProcessWorker(QObject):
 	# Signals
 	complete = pyqtSignal()
 	progressMsg = pyqtSignal(str)
+	statisticsMsg = pyqtSignal(str)
 	progressBar = pyqtSignal(int, int, int)
 
 	task = 0 # Default: Nothing
@@ -52,6 +53,7 @@ class ProcessWorker(QObject):
 
 			self.t = ScrOneTask(self.task_data, merged_options())
 			self.t.out.connect(self.report_progress)
+			self.t.stat.connect(self.report_stats)
 			self.t.bar.connect(self.progress_bar)
 			self.t.complete.connect(self.done)
 			self.t.run()
@@ -63,6 +65,7 @@ class ProcessWorker(QObject):
 
 			self.t = ScrapeTask(self.task_data, merged_options())
 			self.t.out.connect(self.report_progress)
+			self.t.stat.connect(self.report_stats)
 			self.t.bar.connect(self.progress_bar)
 			self.t.complete.connect(self.done)
 			self.t.run()
@@ -85,10 +88,14 @@ class ProcessWorker(QObject):
 	def report_progress(self, msg):
 		self.progressMsg.emit(msg)
 
+	def report_stats(self, msg):
+		self.statisticsMsg.emit(msg)
+
 	def progress_bar(self, action, pre, end):
 		self.progressBar.emit(action, pre, end)
 
 	def done(self):
+		self.statisticsMsg.emit("")
 		self.complete.emit()
 
 
@@ -213,6 +220,7 @@ class MainAppBackend(QObject):
 
 	# Send output message (string: message)
 	progressMsg = pyqtSignal(str, arguments=['msg'])
+	statisticsMsg = pyqtSignal(str, arguments=['msg'])
 	# Send progress to bar (int: action, int: updated value, int: total)
 	# action = 0: toggle total progress bar
 	# action = 1: toggle game progress bar
@@ -309,12 +317,17 @@ class MainAppBackend(QObject):
 		self.thread.finished.connect(self.thread.deleteLater)
 
 		self.taskWorker.progressMsg.connect(self.report_progress)
+		self.taskWorker.statisticsMsg.connect(self.report_stats)
 		self.taskWorker.progressBar.connect(self.update_progress_bar)
 		self.thread.start()
 
 	def report_progress(self, msg):
 		log(msg, "O")
 		self.progressMsg.emit(msg)
+
+	def report_stats(self, msg):
+		log(msg, "D", True)
+		self.statisticsMsg.emit(msg)
 
 	def update_progress_bar(self, action, pre, end):
 		if (action == 0):

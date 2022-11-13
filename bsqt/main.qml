@@ -41,6 +41,10 @@ ApplicationWindow {
 			workMsg = msg
 		}
 
+		function onStatisticsMsg(msg) {
+			statsMsg = msg
+		}
+
 		function onProgressBar(res) {
 			workP.updateProgress(res)
 		}
@@ -152,6 +156,7 @@ ApplicationWindow {
 
 	// Variables
 	property string workMsg: "Doing Something..."
+	property string statsMsg: ""
 
 	property int currentPage: 0
 	property bool working: false

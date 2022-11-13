@@ -14,6 +14,7 @@ Need help? For quick support or light feature suggestions, [Visit the Discord Se
 
 Ensure you have the following dependencies installed:
 
+- Python 3
 - Qt5
 
 - The following python packages:

@@ -7,7 +7,7 @@ from PyQt5.QtCore import *
 ## Genral Information
 info = {
 	"NAME": "bigscraper-qt",
-	"VERSION": "1.4.1",
+	"VERSION": "1.4.2",
 	"AUTHOR": "Fr75s",
 	"LICENSE": "GPLv3",
 	"URL": "https://fr75s.github.io/bigscraperqt/"
@@ -255,8 +255,16 @@ def log(msg, prefix="", debug=False):
 	if not(prefix == ""):
 		m = "[" + prefix + "] " + msg
 
+	pm = m
+
+	# Colors
+	if prefix == "D":
+		pm = "\033[37m" + m + "\033[00m"
+	if prefix == "W":
+		pm = "\033[91m" + m + "\033[00m"
+
 	if not(debug) or output_debug:
-		print(m)
+		print(pm)
 
 	if not(no_logs):
 		logfile.write(m + "\n")

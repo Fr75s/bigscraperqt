@@ -12,6 +12,7 @@ from PyQt5.QtCore import *
 class ScrOneTask(QObject):
 	complete = pyqtSignal()
 	out = pyqtSignal(str)
+	stat = pyqtSignal(str)
 
 	bar = pyqtSignal(int, int, int)
 
@@ -537,21 +538,50 @@ class ScrOneTask(QObject):
 					self.out.emit("The ScreenScraper API is down right now. Exiting...")
 					log(f"ScreenScraper Request Error: API Down", "I")
 					self.complete.emit()
+
 				if "Le logiciel de scrape utilisé a été blacklisté" in page.text:
 					self.out.emit("Bigscraper-qt has been blacklisted. Exiting...")
 					log(f"ScreenScraper Request Error: App Blacklisted", "I")
 					self.complete.emit()
+
 				if "Votre quota de scrape est" in page.text:
 					self.out.emit("Your daily ScreenScraper scraping limit has been reached, try again tomorrow.")
 					log(f"ScreenScraper Request Error: Daily Quota Reached", "I")
 					self.complete.emit()
+
 				if "Champ crc, md5 ou sha1 erroné" in page.text:
 					self.out.emit("Your Game file's hashes are incorrect. Exiting...")
 					log(f"ScreenScraper Request Error: Incorrect File Hashes (check the hashes of your files)", "I")
 					self.complete.emit()
+
 				if ("API fermé pour les non membres" in page.text) or ("API closed for non-registered members" in page.text):
 					self.out.emit("ScreenScraper is down for unregistered users, Exiting...")
 					log(f"ScreenScraper Request Error: Server Down for Unregistered users.", "I")
+					self.complete.emit()
+
+				if "Erreur de login : Vérifier vos identifiants développeur !" in page_text:
+					self.out.emit("Please update bigscraper-qt. Exiting...")
+					log(f"({game_name}) ScreenScraper Request Error: Wrong Dev Credentials (app probably needs updating)", "I")
+					self.complete.emit()
+
+				if ("Erreur : Jeu non trouvée !" in page_text) or ("Erreur : Rom/Iso/Dossier non trouvée !" in page_text):
+					self.out.emit(f"No match was found for {game_name}. Skipping...")
+					log(f"({game_name}) ScreenScraper Request Error: No Game Match Found (check if {game_name} is similar to the game name on screenscraper)", "I")
+					self.complete.emit()
+
+				if "Problème dans le nom du fichier rom" in page_text:
+					self.out.emit(f"{game_name} has a bad name format. Skipping...")
+					log(f"({game_name}) ScreenScraper Request Error: {game_name}'s file name format doesn't match ScreenScraper's list of names. Typically, the name should be in the form [My Game (REG)].", "I")
+					self.complete.emit()
+
+				if "Faite du tri dans vos fichiers roms et repassez demain !" in page_text:
+					self.out.emit(f"This game probably doesn't match, and you have scraped too many games that didn't return anything. Skipping...")
+					log(f"({game_name}) ScreenScraper Request Error: Too many bad requests. ScreenScraper has a separate limit for requests that don't return anything, and if it's too much an error is returned.", "I")
+					self.complete.emit()
+
+				if "Le nombre de threads autorisé pour le membre est atteint" in page_text:
+					self.out.emit(f"Stopping thread for {game_name}...")
+					log(f"({game_name}) ScreenScraper Request Error: Too many threads. Please take a note of the max number of threads you have.", "W")
 					self.complete.emit()
 
 
@@ -593,7 +623,7 @@ class ScrOneTask(QObject):
 				for reg in regions_ss[self.options_loc["region"]]:
 
 					# Name: Check if names of games match the regional name
-					if not("Name" in meta):
+					if not("Name" in meta) and ("noms" in game_raw):
 						log("Checking for Game Name", "D", True)
 						for uncat_name in game_raw["noms"]:
 							if uncat_name["region"] == reg:
@@ -602,7 +632,7 @@ class ScrOneTask(QObject):
 								break
 
 					# Release Date: Check if regional release dates match
-					if not("Release Date" in meta):
+					if not("Release Date" in meta) and ("dates" in game_raw):
 						log("Checking for Game Release", "D", True)
 						for uncat_release in game_raw["dates"]:
 							if uncat_release["region"] == reg:
@@ -630,7 +660,7 @@ class ScrOneTask(QObject):
 				for lang in langlist:
 
 					# Overview: Check if regional overview matches region
-					if not("Overview" in meta):
+					if not("Overview" in meta) and ("synopsis" in game_raw):
 						log("Checking for Game Overview", "D", True)
 						for uncat_ov in game_raw["synopsis"]:
 							if uncat_ov["langue"] == lang:
@@ -639,19 +669,20 @@ class ScrOneTask(QObject):
 								break
 
 					# Genre: Scan through each genre and check if the language matches
-					idx = 0
-					for genre in game_raw["genres"]:
-						log("Checking for Game Genre", "D", True)
-						# Check if this genre already has found a name
-						if not(idx in genre_indexes_namefound):
-							log("This Genre name not found yet", "D", True)
-							for genre_name in genre["noms"]:
-								if (genre_name["langue"] == lang):
-									genrelist.append(genre_name["text"])
-									genre_indexes_namefound.append(idx)
-									log(f"Adding this genre ({idx})", "D", True)
-									break
-						idx += 1
+					if ("genres" in game_raw):
+						idx = 0
+						for genre in game_raw["genres"]:
+							log("Checking for Game Genre", "D", True)
+							# Check if this genre already has found a name
+							if not(idx in genre_indexes_namefound):
+								log("This Genre name not found yet", "D", True)
+								for genre_name in genre["noms"]:
+									if (genre_name["langue"] == lang):
+										genrelist.append(genre_name["text"])
+										genre_indexes_namefound.append(idx)
+										log(f"Adding this genre ({idx})", "D", True)
+										break
+							idx += 1
 
 				meta["Genres"] = genrelist
 
@@ -661,18 +692,22 @@ class ScrOneTask(QObject):
 
 				# Developers, Publishers
 				log("Getting Developers", "D", True)
-				meta["Developers"] = [game_raw["developpeur"]["text"]]
+				if "developpeur" in game_raw:
+					meta["Developers"] = [game_raw["developpeur"]["text"]]
 				log("Getting Publishers", "D", True)
-				meta["Publishers"] = [game_raw["editeur"]["text"]]
+				if "editeur" in game_raw:
+					meta["Publishers"] = [game_raw["editeur"]["text"]]
 
 				# Max Players: Get the last number of the range
 				log("Getting Max Players", "D", True)
-				meta["Max Players"] = [game_raw["joueurs"]["text"].split("-")[-1]]
+				if "joueurs" in game_raw:
+					meta["Max Players"] = [game_raw["joueurs"]["text"].split("-")[-1]]
 
 				# Rating
 				# ScreenScraper simply has the rating out of 20, do a little math and it is just dividing the rating by 4 to get a rating out of 5
 				log("Getting Rating", "D", True)
-				meta["Rating"] = [str((int(game_raw["note"]["text"])) / 4)]
+				if "note" in game_raw:
+					meta["Rating"] = [str((int(game_raw["note"]["text"])) / 4)]
 
 				# Media Scraping
 
@@ -685,6 +720,7 @@ class ScrOneTask(QObject):
 				idx = 0
 				images = []
 
+				# Nobody uses the single scrape anyways, so nothing to worry about here. Right?
 				for media in game_raw["medias"]:
 
 					# Get Type, URL and Region of Image

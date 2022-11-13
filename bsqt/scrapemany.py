@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import QApplication
 class ScrapeTask(QObject):
 	complete = pyqtSignal()
 	out = pyqtSignal(str)
+	stat = pyqtSignal(str)
 
 	bar = pyqtSignal(int, int, int)
 
@@ -648,6 +649,7 @@ class ScrapeTask(QObject):
 
 					# Connect Relevant Signals
 					screenscraper_worker.sig.out.connect(lambda msg: self.out.emit(msg))
+					screenscraper_worker.sig.stat.connect(lambda msg: self.stat.emit(msg))
 					screenscraper_worker.sig.bar.connect(lambda act, pre, end: self.bar.emit(act, pre, end))
 					screenscraper_worker.sig.termall.connect(lambda: ss_threadpool.clear())
 
@@ -687,6 +689,7 @@ class ScrapeTask(QObject):
 # Signals because for legal reasons QRunnables cannot have signals
 class ScreenScraperRunnableSignals(QObject):
 	out = pyqtSignal(str)
+	stat = pyqtSignal(str)
 	bar = pyqtSignal(int, int, int)
 	termall = pyqtSignal()
 	finished = pyqtSignal()
@@ -775,27 +778,53 @@ class ScreenScraperRunnable(QRunnable):
 
 			# These first 4 indicate a global issue, so stop all scraping if seen
 			# Yes, I know we checked for these while getting user information, but if there is no user or the API goes down while this happens, then I'll be vindicated.
-			if "API totalement fermé" in page.text:
+			page_text = page.text.strip()
+			if "API totalement fermé" in page_text:
 				self.sig.out.emit("The ScreenScraper API is down right now. Exiting...")
 				log(f"({game_name}) ScreenScraper Request Error: API Down", "I")
 				self.sig.termall.emit()
-			if "Le logiciel de scrape utilisé a été blacklisté" in page.text:
+			if "Le logiciel de scrape utilisé a été blacklisté" in page_text:
 				self.sig.out.emit("Bigscraper-qt has been blacklisted. Exiting...")
 				log(f"({game_name}) ScreenScraper Request Error: App Blacklisted", "I")
 				self.sig.termall.emit()
-			if "Votre quota de scrape est" in page.text:
+			if "Erreur de login : Vérifier vos identifiants développeur !" in page_text:
+				self.sig.out.emit("Please update bigscraper-qt. Exiting...")
+				log(f"({game_name}) ScreenScraper Request Error: Wrong Dev Credentials (app probably needs updating)", "I")
+				self.sig.termall.emit()
+			if "Votre quota de scrape est" in page_text:
 				self.sig.out.emit("Your daily ScreenScraper scraping limit has been reached, try again tomorrow.")
 				log(f"({game_name}) ScreenScraper Request Error: Daily Quota Reached", "I")
 				self.sig.termall.emit()
-			if ("API fermé pour les non membres" in page.text) or ("API closed for non-registered members" in page.text):
+			if ("API fermé pour les non membres" in page_text) or ("API closed for non-registered members" in page_text):
 				self.sig.out.emit("ScreenScraper is down for unregistered users, Exiting...")
 				log(f"({game_name}) ScreenScraper Request Error: Server Down for Unregistered users.", "I")
 				self.sig.termall.emit()
 
-			# This one is just a local problem, so other games can continue even if this one is bad
-			if "Champ crc, md5 ou sha1 erroné" in page.text:
+			# These ones are Local Problems, so only this game is affected
+			# Wrong Hashes
+			if "Champ crc, md5 ou sha1 erroné" in page_text:
 				self.sig.out.emit(f"The Game File hashes for {game_name} are incorrect. Skipping...")
 				log(f"({game_name}) ScreenScraper Request Error: Incorrect File Hashes (check the hashes of your files)", "I")
+				continue_scrape = False
+
+			if ("Erreur : Jeu non trouvée !" in page_text) or ("Erreur : Rom/Iso/Dossier non trouvée !" in page_text):
+				self.sig.out.emit(f"No match was found for {game_name}. Skipping...")
+				log(f"({game_name}) ScreenScraper Request Error: No Game Match Found (check if {game_name} is similar to the game name on screenscraper)", "I")
+				continue_scrape = False
+
+			if "Problème dans le nom du fichier rom" in page_text:
+				self.sig.out.emit(f"{game_name} has a bad name format. Skipping...")
+				log(f"({game_name}) ScreenScraper Request Error: {game_name}'s file name format doesn't match ScreenScraper's list of names. Typically, the name should be in the form [My Game (REG)].", "I")
+				continue_scrape = False
+
+			if "Faite du tri dans vos fichiers roms et repassez demain !" in page_text:
+				self.sig.out.emit(f"This game probably doesn't match, and you have scraped too many games that didn't return anything. Skipping...")
+				log(f"({game_name}) ScreenScraper Request Error: Too many bad requests. ScreenScraper has a separate limit for requests that don't return anything, and if it's too much an error is returned.", "I")
+				continue_scrape = False
+
+			if "Le nombre de threads autorisé pour le membre est atteint" in page_text:
+				self.sig.out.emit(f"Stopping thread for {game_name}...")
+				log(f"({game_name}) ScreenScraper Request Error: Too many threads. Please take a note of the max number of threads you have.", "W")
 				continue_scrape = False
 
 
@@ -819,7 +848,13 @@ class ScreenScraperRunnable(QRunnable):
 					# Check if you've exceeded the daily request limit
 					reqs_today = int(page_content["response"]["ssuser"]["requeststoday"])
 					reqs_max = int(page_content["response"]["ssuser"]["maxrequestsperday"])
-					if (reqs_today >= reqs_max):
+
+					ko_today = int(page_content["response"]["ssuser"]["requestskotoday"])
+					ko_max = int(page_content["response"]["ssuser"]["maxrequestskoperday"])
+
+					self.sig.stat.emit(f"REQ: ({reqs_today}/{reqs_max})\nKO: ({ko_today}/{ko_max})")
+
+					if (reqs_today >= reqs_max) or (ko_today >= ko_max):
 						self.sig.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
 						log(f"({game_name}) You've exceeded the Max Daily Requests.", "I")
 						self.sig.termall.emit()
@@ -841,7 +876,7 @@ class ScreenScraperRunnable(QRunnable):
 						for reg in regions_ss[self.options_loc["region"]]:
 
 							# Name: Check if names of games match the regional name
-							if not("Name" in meta):
+							if not("Name" in meta) and ("noms" in game_raw):
 								log("Checking for Game Name", "D", True)
 								for uncat_name in game_raw["noms"]:
 									if uncat_name["region"] == reg:
@@ -850,7 +885,7 @@ class ScreenScraperRunnable(QRunnable):
 										break
 
 							# Release Date: Check if regional release dates match
-							if not("Release Date" in meta):
+							if not("Release Date" in meta) and ("dates" in game_raw):
 								log("Checking for Game Release", "D", True)
 								for uncat_release in game_raw["dates"]:
 									if uncat_release["region"] == reg:
@@ -882,7 +917,7 @@ class ScreenScraperRunnable(QRunnable):
 						for lang in langlist:
 
 							# Overview: Check if regional overview matches region
-							if not("Overview" in meta):
+							if not("Overview" in meta) and ("synopsis" in game_raw):
 								log("Checking for Game Overview", "D", True)
 								for uncat_ov in game_raw["synopsis"]:
 									if uncat_ov["langue"] == lang:
@@ -891,19 +926,20 @@ class ScreenScraperRunnable(QRunnable):
 										break
 
 							# Genre: Scan through each genre and check if the language matches
-							idx = 0
-							for genre in game_raw["genres"]:
-								log("Checking for Game Genre", "D", True)
-								# Check if this genre already has found a name
-								if not(idx in genre_indexes_namefound):
-									log("This Genre name not found yet", "D", True)
-									for genre_name in genre["noms"]:
-										if (genre_name["langue"] == lang):
-											genrelist.append(genre_name["text"])
-											genre_indexes_namefound.append(idx)
-											log(f"Adding this genre ({idx})", "D", True)
-											break
-								idx += 1
+							if ("genres" in game_raw):
+								idx = 0
+								for genre in game_raw["genres"]:
+									log("Checking for Game Genre", "D", True)
+									# Check if this genre already has found a name
+									if not(idx in genre_indexes_namefound):
+										log("This Genre name not found yet", "D", True)
+										for genre_name in genre["noms"]:
+											if (genre_name["langue"] == lang):
+												genrelist.append(genre_name["text"])
+												genre_indexes_namefound.append(idx)
+												log(f"Adding this genre ({idx})", "D", True)
+												break
+									idx += 1
 
 						meta["Genres"] = genrelist
 
@@ -913,18 +949,22 @@ class ScreenScraperRunnable(QRunnable):
 
 						# Developers, Publishers
 						log("Getting Developers", "D", True)
-						meta["Developers"] = [game_raw["developpeur"]["text"]]
+						if "developpeur" in game_raw:
+							meta["Developers"] = [game_raw["developpeur"]["text"]]
 						log("Getting Publishers", "D", True)
-						meta["Publishers"] = [game_raw["editeur"]["text"]]
+						if "editeur" in game_raw:
+							meta["Publishers"] = [game_raw["editeur"]["text"]]
 
 						# Max Players: Get the last number of the range
 						log("Getting Max Players", "D", True)
-						meta["Max Players"] = [game_raw["joueurs"]["text"].split("-")[-1]]
+						if "joueurs" in game_raw:
+							meta["Max Players"] = [game_raw["joueurs"]["text"].split("-")[-1]]
 
 						# Rating
 						# ScreenScraper simply has the rating out of 20, do a little math and it is just dividing the rating by 4 to get a rating out of 5
 						log("Getting Rating", "D", True)
-						meta["Rating"] = [str((int(game_raw["note"]["text"])) / 4)]
+						if "note" in game_raw:
+							meta["Rating"] = [str((int(game_raw["note"]["text"])) / 4)]
 
 
 
@@ -937,6 +977,8 @@ class ScreenScraperRunnable(QRunnable):
 						iidx = 0
 						images = []
 
+						# If the users ever see a game with no media, they'll probably list an error here.
+						# In this case, you've been trolled, future me.
 						for media in game_raw["medias"]:
 
 							# Get Type, URL and Region of Image

@@ -172,6 +172,27 @@ Item {
 		verticalAlignment: Text.AlignVCenter
 	}
 
+	Text {
+		id: statsText
+		width: parent.width * 0.5
+		height: parent.height * 0.5
+
+		anchors.right: parent.right
+		anchors.top: parent.top
+		anchors.margins: parent.height * 0.05
+
+		color: colors.text
+		text: statsMsg
+		wrapMode: Text.WordWrap
+
+		font.family: outfit.name
+		font.pixelSize: 18
+		font.weight: Font.Medium
+
+		horizontalAlignment: Text.AlignRight
+		verticalAlignment: Text.AlignTop
+	}
+
 	function updateProgress(res) {
 		let action = res[0]
 
