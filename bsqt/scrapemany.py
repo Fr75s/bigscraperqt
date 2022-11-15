@@ -124,6 +124,10 @@ class ScrapeTask(QObject):
 				# Download 1st Page
 				self.out.emit("Getting Page " + str(current_page))
 				self.bar.emit(0, 1, 0)
+
+				if output_links:
+					print(f"\033[94m[L] https://gamesdb.launchbox-app.com/platforms/games/" + lb_sysid[system] + "|" + str(current_page) + "\033[00m")
+
 				page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + lb_sysid[system] + "|" + str(current_page), timeout=15)
 				log("Page Request Successful", "D", True)
 				pagetree = html.fromstring(page.content)
@@ -363,6 +367,10 @@ class ScrapeTask(QObject):
 					index += 1
 
 					log("Attempting to get page " + url, "I")
+
+					if output_links:
+						print(f"\033[94m[L] {url}\033[00m")
+
 					try:
 						self.out.emit("Getting Data Page " + str(index))
 						page = requests.get(url, timeout=15)
@@ -583,6 +591,9 @@ class ScrapeTask(QObject):
 					log(f"Getting User Page", "I")
 
 					# Get the user page
+					if output_links:
+						print(f"\033[94m[L] {url_base.replace('jeuInfos','ssuserInfos')}\033[00m")
+
 					try:
 						self.out.emit(f"Getting User Page")
 						user_page = requests.get(url_base.replace("jeuInfos", "ssuserInfos"), timeout=15)
@@ -763,6 +774,9 @@ class ScreenScraperRunnable(QRunnable):
 		# Generate URL
 		url = baseurl + "&crc=" + hex(hash_crc32)[2:] + "&md5=" + hash_md5 + "&sha1=" + hash_sha1 + "&systemeid=" + str(system_info[0]) + "&romtype=rom&romnom=" + os.path.basename(game_path) + "&romtaille=" + str(game_size)
 
+		if output_links:
+			print(f"\033[94m[L] {url}\033[00m")
+
 		# Request URL
 		log(f"Attempting to get page for {game_name}", "I")
 		try:
@@ -846,18 +860,22 @@ class ScreenScraperRunnable(QRunnable):
 						continue_scrape = False
 
 					# Check if you've exceeded the daily request limit
-					reqs_today = int(page_content["response"]["ssuser"]["requeststoday"])
-					reqs_max = int(page_content["response"]["ssuser"]["maxrequestsperday"])
 
-					ko_today = int(page_content["response"]["ssuser"]["requestskotoday"])
-					ko_max = int(page_content["response"]["ssuser"]["maxrequestskoperday"])
+					# For some reason sometimes scraping games doesn't return ssuser (I encountered this while scraping N64 games, both Glover and DK64). Therefore, check if ssuser is there. This is unacceptable: It SHOULD be there, but for some reason it isn't
 
-					self.sig.stat.emit(f"REQ: ({reqs_today}/{reqs_max})\nKO: ({ko_today}/{ko_max})")
+					if "ssuser" in page_content["response"]:
+						reqs_today = int(page_content["response"]["ssuser"]["requeststoday"])
+						reqs_max = int(page_content["response"]["ssuser"]["maxrequestsperday"])
 
-					if (reqs_today >= reqs_max) or (ko_today >= ko_max):
-						self.sig.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
-						log(f"({game_name}) You've exceeded the Max Daily Requests.", "I")
-						self.sig.termall.emit()
+						ko_today = int(page_content["response"]["ssuser"]["requestskotoday"])
+						ko_max = int(page_content["response"]["ssuser"]["maxrequestskoperday"])
+
+						self.sig.stat.emit(f"REQ: ({reqs_today}/{reqs_max})\nKO: ({ko_today}/{ko_max})")
+
+						if (reqs_today >= reqs_max) or (ko_today >= ko_max):
+							self.sig.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
+							log(f"({game_name}) You've exceeded the Max Daily Requests.", "I")
+							self.sig.termall.emit()
 
 
 

@@ -235,6 +235,10 @@ output_debug = False
 if ("-d" in sys.argv):
 	output_debug = True
 
+output_links = False
+if ("-l" in sys.argv):
+	output_links = True
+
 no_logs = False
 if ("--nolog" in sys.argv):
 	no_logs = True
@@ -246,6 +250,7 @@ if ("-h" in sys.argv or "-?" in sys.argv or "--help" in sys.argv):
 	print("Flag Help:")
 	print("-n\t\tForce Native UI")
 	print("-d\t\tPrint Debug-level logs to stdout")
+	print("-l\t\tPrint Links to stdout (they are not logged)")
 	print("--nolog\t\tDo not generate log files")
 
 	print("-style [style]\tUse a different Qt Style (built into PyQt, but useful)")
@@ -271,6 +276,8 @@ def log(msg, prefix="", debug=False):
 	# Colors
 	if prefix == "D":
 		pm = "\033[37m" + m + "\033[00m"
+	if prefix == "L":
+		pm = "\033[94m" + m + "\033[00m"
 	if prefix == "W":
 		pm = "\033[91m" + m + "\033[00m"
 

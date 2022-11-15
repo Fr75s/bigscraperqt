@@ -522,6 +522,9 @@ class ScrOneTask(QObject):
 				# Finally, we are ready to scrape.
 				#
 
+				if output_links:
+					print(f"\033[94m[L] {url}\033[00m")
+
 				# Attempt to get the game page
 				log("Attempting to get info", "I")
 				try:
@@ -559,27 +562,27 @@ class ScrOneTask(QObject):
 					log(f"ScreenScraper Request Error: Server Down for Unregistered users.", "I")
 					self.complete.emit()
 
-				if "Erreur de login : Vérifier vos identifiants développeur !" in page_text:
+				if "Erreur de login : Vérifier vos identifiants développeur !" in page.text:
 					self.out.emit("Please update bigscraper-qt. Exiting...")
 					log(f"({game_name}) ScreenScraper Request Error: Wrong Dev Credentials (app probably needs updating)", "I")
 					self.complete.emit()
 
-				if ("Erreur : Jeu non trouvée !" in page_text) or ("Erreur : Rom/Iso/Dossier non trouvée !" in page_text):
+				if ("Erreur : Jeu non trouvée !" in page.text) or ("Erreur : Rom/Iso/Dossier non trouvée !" in page.text):
 					self.out.emit(f"No match was found for {game_name}. Skipping...")
 					log(f"({game_name}) ScreenScraper Request Error: No Game Match Found (check if {game_name} is similar to the game name on screenscraper)", "I")
 					self.complete.emit()
 
-				if "Problème dans le nom du fichier rom" in page_text:
+				if "Problème dans le nom du fichier rom" in page.text:
 					self.out.emit(f"{game_name} has a bad name format. Skipping...")
 					log(f"({game_name}) ScreenScraper Request Error: {game_name}'s file name format doesn't match ScreenScraper's list of names. Typically, the name should be in the form [My Game (REG)].", "I")
 					self.complete.emit()
 
-				if "Faite du tri dans vos fichiers roms et repassez demain !" in page_text:
+				if "Faite du tri dans vos fichiers roms et repassez demain !" in page.text:
 					self.out.emit(f"This game probably doesn't match, and you have scraped too many games that didn't return anything. Skipping...")
 					log(f"({game_name}) ScreenScraper Request Error: Too many bad requests. ScreenScraper has a separate limit for requests that don't return anything, and if it's too much an error is returned.", "I")
 					self.complete.emit()
 
-				if "Le nombre de threads autorisé pour le membre est atteint" in page_text:
+				if "Le nombre de threads autorisé pour le membre est atteint" in page.text:
 					self.out.emit(f"Stopping thread for {game_name}...")
 					log(f"({game_name}) ScreenScraper Request Error: Too many threads. Please take a note of the max number of threads you have.", "W")
 					self.complete.emit()
@@ -601,12 +604,20 @@ class ScrOneTask(QObject):
 					self.complete.emit()
 
 				# Check if you've exceeded the daily request limit
-				reqs_today = int(page_content["response"]["ssuser"]["requeststoday"])
-				reqs_max = int(page_content["response"]["ssuser"]["maxrequestsperday"])
-				if (reqs_today >= reqs_max):
-					self.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
-					log("You've exceeded the Max Daily Requests.", "I")
-					self.complete.emit()
+
+				# If you're wondering why we're checking for ssuser, check the complaint in scrapemany.py.
+				if "ssuser" in page_content["response"]:
+					reqs_today = int(page_content["response"]["ssuser"]["requeststoday"])
+					reqs_max = int(page_content["response"]["ssuser"]["maxrequestsperday"])
+
+					ko_today = int(page_content["response"]["ssuser"]["requestskotoday"])
+					ko_max = int(page_content["response"]["ssuser"]["maxrequestskoperday"])
+
+					self.sig.stat.emit(f"REQ: ({reqs_today}/{reqs_max})\nKO: ({ko_today}/{ko_max})")
+					if (reqs_today >= reqs_max):
+						self.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
+						log("You've exceeded the Max Daily Requests.", "I")
+						self.complete.emit()
 
 
 				# And after all that error checking, we can finally start getting the actual data.
