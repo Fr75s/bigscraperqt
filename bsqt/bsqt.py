@@ -400,7 +400,7 @@ def init_filesystem():
 						log_list.append(f)
 
 			log_list.sort()
-			log(log_list, "D", True)
+			log(str(log_list), "D", True)
 
 			delete_log_list = log_list[0:(-1 * optionsVary["maxLogFiles"])]
 			log(f"Deleting These logs: {delete_log_list}", "I", True)

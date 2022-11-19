@@ -613,7 +613,7 @@ class ScrOneTask(QObject):
 					ko_today = int(page_content["response"]["ssuser"]["requestskotoday"])
 					ko_max = int(page_content["response"]["ssuser"]["maxrequestskoperday"])
 
-					self.sig.stat.emit(f"REQ: ({reqs_today}/{reqs_max})\nKO: ({ko_today}/{ko_max})")
+					self.stat.emit(f"REQ: ({reqs_today}/{reqs_max})\nKO: ({ko_today}/{ko_max})")
 					if (reqs_today >= reqs_max):
 						self.out.emit("You've Exceeded the Max Number of Requests. Exiting...")
 						log("You've exceeded the Max Daily Requests.", "I")
