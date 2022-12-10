@@ -60,6 +60,11 @@ ct_format = ct[0] + ct[1] + ct[2] + "_" + ct[3] + ct[4] + ct[5]
 ## Define some useful functions
 #
 
+# Remove Accents
+def noaccent(text):
+	out = u"" + text
+	return unidecode.unidecode(out)
+
 # Format text for matching
 def form(text):
 	out = ""
@@ -74,9 +79,8 @@ def form(text):
 		if (c in (")", "]", "}")):
 			inbr = False
 
-	# Remove Accents (REQUIRES UNIDECODE)
-	out = u"" + out
-	out = unidecode.unidecode(out)
+	# Remove Accents (USES ABOVE)
+	out = noaccent(out)
 
 	# Numerous Character Replacements
 	out = out.upper().strip(" ").replace(" -","").replace(": ","_").replace(" ","_").replace(":","_").replace("-","_").replace(".","").replace("!","").replace("?","").replace("'","").replace("&","AND")

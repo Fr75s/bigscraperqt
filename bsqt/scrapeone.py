@@ -200,6 +200,13 @@ class ScrOneTask(QObject):
 					# Download each image
 					index = 0
 					self.out.emit("Downloading Images")
+
+					# Replace accents in image titles (mismatches may occur otherwise)
+					image_title_idx = 0
+					for image_title in image_titles:
+						image_titles[image_title_idx] = noaccent(image_title)
+						idx += 1
+
 					for link in image_links:
 						# Get link
 						image_title = image_titles[index]
@@ -237,7 +244,7 @@ class ScrOneTask(QObject):
 
 						dl_options = {
 							"match_filter": video_len_test,
-							"outtmpl": os.path.join(paths["MEDIA"], system, game_match) + "/" + meta["Name"][0] + " - Video.%(ext)s",
+							"outtmpl": os.path.join(paths["MEDIA"], system, game_match) + "/" + noaccent(meta["Name"][0]) + " - Video.%(ext)s",
 							"progress_hooks": [self.video_progress_hook]
 						}
 
@@ -380,7 +387,7 @@ class ScrOneTask(QObject):
 						log("Request Successful, Writing to file", "D", True)
 						# Write to file
 						for out_art in ad_arts[art]:
-							image_title = meta["Name"][0] + " - " + out_art
+							image_title = noaccent(meta["Name"][0]) + " - " + out_art
 							open(os.path.join(paths["MEDIA"], system, game_name) + "/" + image_title + ".png", "wb").write(image.content)
 
 							images.append(image_title)
@@ -404,7 +411,7 @@ class ScrOneTask(QObject):
 				if self.options_loc["video"] and "Video Link" in meta:
 					dl_options = {
 						"match_filter": video_len_test,
-						"outtmpl": os.path.join(paths["MEDIA"], system, game_name) + "/" + meta["Name"][0] + " - Video.%(ext)s",
+						"outtmpl": os.path.join(paths["MEDIA"], system, game_name) + "/" + noaccent(meta["Name"][0]) + " - Video.%(ext)s",
 						"progress_hooks": [self.video_progress_hook]
 					}
 
@@ -748,7 +755,7 @@ class ScrOneTask(QObject):
 
 					# Set the Formalized Image ID (title)
 					if mtype in ss_arts:
-						image_id = meta["Name"][0] + " - " + ss_arts[mtype] + translated_mreg
+						image_id = noaccent(meta["Name"][0]) + " - " + ss_arts[mtype] + translated_mreg
 
 					if mtype == "video-normalized":
 						meta["Video Link"] = [murl]
@@ -792,7 +799,7 @@ class ScrOneTask(QObject):
 						meta["Video Link"] = [meta["Video Link"][0].replace("Fr75s", "[DEVID]").replace(unstuff("169;216;221;197;183;184;141;180;163;214;234"), "[DEVPASS]")]
 
 						log("Download Successful, Writing to file", "D", True)
-						open(os.path.join(paths["MEDIA"], system, game) + "/" + meta["Name"][0] + " - Video" + ".mp4", "wb").write(video_data.content)
+						open(os.path.join(paths["MEDIA"], system, game) + "/" + noaccent(meta["Name"][0]) + " - Video" + ".mp4", "wb").write(video_data.content)
 
 					except Exception as e:
 						log(f"Download Error: {e}", "D", True)
