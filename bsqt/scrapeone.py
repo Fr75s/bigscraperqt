@@ -87,10 +87,13 @@ class ScrOneTask(QObject):
 
 				# Start Downloading Pages
 				self.out.emit("Getting Page " + str(current_page))
-				page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + lb_sysid[system] + "|" + str(current_page))
+				page = requests.get(lb_page(system, current_page), timeout=15)
 				log("Page Request Successful", "D", True)
+				
 				pagetree = html.fromstring(page.content)
 				page_games = pagetree.xpath('//a[@class="list-item"]')
+
+				log(str(page_games), "D", True)
 
 				while (len(page_games) > 0):
 					# Scan through each text item
@@ -114,7 +117,7 @@ class ScrOneTask(QObject):
 						# Get next page
 						self.out.emit("Getting Page " + str(current_page))
 						try:
-							page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + lb_sysid[system] + "|" + str(current_page), timeout=15)
+							page = requests.get(lb_page(system, current_page), timeout=15)
 							log("Page Request Successful", "D", True)
 						except Exception as e:
 							current_page -= 1
@@ -205,7 +208,7 @@ class ScrOneTask(QObject):
 					image_title_idx = 0
 					for image_title in image_titles:
 						image_titles[image_title_idx] = noaccent(image_title)
-						idx += 1
+						image_title_idx += 1
 
 					for link in image_links:
 						# Get link
