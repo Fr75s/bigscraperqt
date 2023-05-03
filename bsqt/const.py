@@ -1,4 +1,4 @@
-import os, sys, json, datetime, unidecode
+import os, sys, json, atexit, datetime, unidecode
 from xdg import xdg_data_home, xdg_config_home
 from yt_dlp import YoutubeDL
 
@@ -313,6 +313,12 @@ def log(msg, prefix="", debug=False, bypassHist=False):
 
 	if not(no_logs):
 		logfile.write(m + "\n")
+
+def close_log():
+	if not(no_logs):
+		logfile.close()
+
+atexit.register(close_log)
 
 def log_link(link):
 	if output_links:

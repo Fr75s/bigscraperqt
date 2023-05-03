@@ -166,6 +166,9 @@ class ScrapeTask(QObject):
 								database_id = details_link.rsplit('/', 1)[-1]
 								images_link = "https://gamesdb.launchbox-app.com/games/images/" + database_id
 
+								log_link(details_link)
+								log_link(images_link)
+
 								# Get details page
 								log("Attempting to get Details Page", "I")
 								details_page = requests.get(details_link)
@@ -374,8 +377,7 @@ class ScrapeTask(QObject):
 
 					log("Attempting to get page " + url, "I")
 
-					if output_links:
-						print(f"\033[94m[L] {url}\033[00m")
+					log_link(url)
 
 					try:
 						self.out.emit("Getting Data Page " + str(index))
@@ -597,8 +599,7 @@ class ScrapeTask(QObject):
 					log(f"Getting User Page", "I")
 
 					# Get the user page
-					if output_links:
-						print(f"\033[94m[L] {url_base.replace('jeuInfos','ssuserInfos')}\033[00m")
+					log_link(url_base.replace('jeuInfos','ssuserInfos'))
 
 					try:
 						self.out.emit(f"Getting User Page")
@@ -780,8 +781,7 @@ class ScreenScraperRunnable(QRunnable):
 		# Generate URL
 		url = baseurl + "&crc=" + hex(hash_crc32)[2:] + "&md5=" + hash_md5 + "&sha1=" + hash_sha1 + "&systemeid=" + str(system_info[0]) + "&romtype=rom&romnom=" + os.path.basename(game_path) + "&romtaille=" + str(game_size)
 
-		if output_links:
-			print(f"\033[94m[L] {url}\033[00m")
+		log_link(url)
 
 		# Request URL
 		log(f"Attempting to get page for {game_name}", "I")

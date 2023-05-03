@@ -132,6 +132,9 @@ class ScrOneTask(QObject):
 					database_id = details_link.rsplit('/', 1)[-1]
 					images_link = "https://gamesdb.launchbox-app.com/games/images/" + database_id
 
+					log_link(details_link)
+					log_link(images_link)
+
 					# Get details page
 					log("Attempting to get Details Page", "I")
 					try:
@@ -530,8 +533,7 @@ class ScrOneTask(QObject):
 				# Finally, we are ready to scrape.
 				#
 
-				if output_links:
-					print(f"\033[94m[L] {url}\033[00m")
+				log_link(url)
 
 				# Attempt to get the game page
 				log("Attempting to get info", "I")
