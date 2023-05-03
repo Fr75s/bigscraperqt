@@ -56,6 +56,14 @@ ct = [
 
 ct_format = ct[0] + ct[1] + ct[2] + "_" + ct[3] + ct[4] + ct[5]
 
+
+#
+## Request Link Preformats
+#
+
+def lb_page(system, page):
+	return "https://gamesdb.launchbox-app.com/platforms/games/" + lb_sysid[system] + "/page/" + str(page)
+
 #
 ## Define some useful functions
 #
@@ -270,26 +278,45 @@ if not(os.path.isdir(paths["LOGS"])):
 if not(no_logs):
 	logfile = open(os.path.join(paths["LOGS"], ct_format + ".log"), "a")
 
-def log(msg, prefix="", debug=False):
+log_hist = ["", "", "", "", ""]
+def log(msg, prefix="", debug=False, bypassHist=False):
 	m = msg
 	if not(prefix == ""):
 		m = "[" + prefix + "] " + msg
+	
+	full_loghist = True
+	for i in log_hist:
+		if (m != i):
+			full_loghist = False
 
-	pm = m
+	if not(full_loghist and not(bypassHist)):
+		
+		for i in range(3, -1, -1):
+			log_hist.pop(i + 1)
+			log_hist.insert(i + 1, log_hist[i])
 
-	# Colors
-	if prefix == "D":
-		pm = "\033[37m" + m + "\033[00m"
-	if prefix == "L":
-		pm = "\033[94m" + m + "\033[00m"
-	if prefix == "W":
-		pm = "\033[91m" + m + "\033[00m"
+		log_hist.pop(0)
+		log_hist.insert(0, m)
+	
+		pm = m
 
-	if not(debug) or output_debug:
-		print(pm)
+		# Colors
+		if prefix == "D":
+			pm = "\033[37m" + m + "\033[00m"
+		if prefix == "L":
+			pm = "\033[94m" + m + "\033[00m"
+		if prefix == "W":
+			pm = "\033[91m" + m + "\033[00m"
+
+		if not(debug) or output_debug:
+			print(pm)
 
 	if not(no_logs):
 		logfile.write(m + "\n")
+
+def log_link(link):
+	if output_links:
+		print(f"\033[94m[L] {link}\033[00m")
 
 log("Program Init... " + ct[0] + "-" + ct[1] + "-" + ct[2] + " " + ct[3] + ":" + ct[4] + ":" + ct[5], "I")
 
@@ -601,87 +628,88 @@ systems = {
 
 # LaunchBox systems to ID numbers
 lb_sysid = {
-	"3do": "1",
-	"amiga": "2",
-	"amstradcpc": "3",
-	"android": "4",
-	"arcade": "5",
-	"atari2600": "6",
-	"atari5200": "7",
-	"atari7800": "8",
-	"atarijaguar": "9",
-	"atarijaguarcd": "10",
-	"atarilynx": "11",
-	"atarixe": "12",
-	"atarist": "76",
-	"colecovision": "13",
-	"adam": "117",
-	"c64": "14",
-	"c128": "118",
-	"amigacd32": "119",
-	"amigacdtv": "120",
-	"vic20": "122",
-	"intellivision": "15",
-	"ios": "16",
-	"macintosh": "17",
-	"vectrex": "125",
-	"xbox": "18",
-	"xbox360": "19",
-	"xboxone": "20",
-	"dos": "83",
-	"msx": "82",
-	"msx2": "190",
-	"windows": "84",
-	"linux": "218",
-	"ngp": "21",
-	"ngpc": "22",
-	"neogeo": "23",
-	"3ds": "24",
-	"n64": "25",
-	"64dd": "194",
-	"nds": "26",
-	"nes": "27",
-	"fds": "157",
-	"snes": "53",
-	"gameandwatch": "166",
-	"gb": "28",
-	"gba": "29",
-	"gbc": "30",
-	"gc": "31",
-	"virtualboy": "32",
-	"wii": "33",
-	"wiiu": "34",
-	"switch": "211",
-	"ouya": "35",
-	"cdi": "37",
-	"sega32x": "38",
-	"segacd": "39",
-	"dreamcast": "40",
-	"gamegear": "41",
-	"genesis": "42",
-	"megadrive": "42",
-	"mastersystem": "43",
-	"naomi": "99",
-	"saturn": "45",
-	"sg1000": "80",
-	"zxspectrum": "46",
-	"psx": "47",
-	"ps2": "48",
-	"ps3": "49",
-	"ps4": "50",
-	"psvita": "51",
-	"psp": "52",
-	"ti99": "149",
-	"turbografx16": "54",
-	"turbografxcd": "163",
-	"pcengine": "54",
-	"wonderswan": "55",
-	"wonderswancolor": "56",
-	"odyssey2": "57",
-	"odyssey": "78",
-	"channelf": "58",
-	"gamecom": "63",
-	"apple2": "111"
+		"3do": "1-3do-interactive-multiplayer",
+	"amiga": "2-commodore-amiga",
+	"amstradcpc": "3-amstrad-cpc",
+	"android": "4-android",
+	"arcade": "5-arcade",
+	"atari2600": "6-atari-2600",
+	"atari5200": "7-atari-5200",
+	"atari7800": "8-atari-7800",
+	"atarijaguar": "9-atari-jaguar",
+	"atarijaguarcd": "10-atari-jaguar-cd",
+	"atarilynx": "11-atari-lynx",
+	"atarixe": "12-atari-xegs",
+	"atarist": "76-atari-st",
+	"colecovision": "13-colecovision",
+	"adam": "117-coleco-adam",
+	"c64": "14-commodore-64",
+	"c128": "118-commodore-128",
+	"amigacd32": "119-commodore-amiga-cd32",
+	"amigacdtv": "120-commodore-cdtv",
+	"vic20": "122-commodore-vic-20",
+	"intellivision": "15-mattel-intellivision",
+	"ios": "16-apple-ios",
+	"macintosh": "17-apple-mac-os",
+	"vectrex": "125-gce-vectrex",
+	"xbox": "18-microsoft-xbox",
+	"xbox360": "19-microsoft-xbox-360",
+	"xboxone": "20-microsoft-xbox-one",
+	"dos": "83-ms-dos",
+	"msx": "82-microsoft-msx",
+	"msx2": "190-microsoft-msx2",
+	"windows": "84-windows",
+	"linux": "218-linux",
+	"ngp": "21-snk-neo-geo-pocket",
+	"ngpc": "22-snk-neo-geo-pocket-color",
+	"neogeo": "23-snk-neo-geo-aes",
+	"3ds": "24-nintendo-3ds",
+	"n64": "25-nintendo-64",
+	"64dd": "194-nintendo-64dd",
+	"nds": "26-nintendo-ds",
+	"nes": "27-nintendo-entertainment-system",
+	"fds": "157-nintendo-famicom-disk-system",
+	"snes": "53-super-nintendo-entertainment-system",
+	"gameandwatch": "166-nintendo-game-watch",
+	"gb": "28-nintendo-game-boy",
+	"gba": "29-nintendo-game-boy-advance",
+	"gbc": "30-nintendo-game-boy-color",
+	"gc": "31-nintendo-gamecube",
+	"virtualboy": "32-nintendo-virtual-boy",
+	"wii": "33-nintendo-wii",
+	"wiiu": "34-nintendo-wii-u",
+	"switch": "211-nintendo-switch",
+	"ouya": "35-ouya",
+	# 36 is skipped lol
+	"cdi": "37-philips-cd-i",
+	"sega32x": "38-sega-32x",
+	"segacd": "39-sega-cd",
+	"dreamcast": "40-sega-dreamcast",
+	"gamegear": "41-sega-game-gear",
+	"genesis": "42-sega-genesis",
+	"megadrive": "42-sega-genesis",
+	"mastersystem": "43-sega-master-system",
+	"naomi": "99-sega-naomi",
+	"saturn": "45-sega-saturn",
+	"sg1000": "80-sega-sg-1000",
+	"zxspectrum": "46-sinclair-zx-spectrum",
+	"psx": "47-sony-playstation",
+	"ps2": "48-sony-playstation-2",
+	"ps3": "49-sony-playstation-3",
+	"ps4": "50-sony-playstation-4",
+	"psvita": "51-sony-playstation-vita",
+	"psp": "52-sony-psp",
+	"ti99": "149-texas-instruments-ti-994a",
+	"turbografx16": "54-nec-turbografx-16",
+	"turbografxcd": "163-nec-turbografx-cd",
+	"pcengine": "54-nec-turbografx-16",
+	"wonderswan": "55-wonderswan",
+	"wonderswancolor": "56-wonderswan-color",
+	"odyssey2": "57-magnavox-odyssey-2",
+	"odyssey": "78-magnavox-odyssey",
+	"channelf": "58-fairchild-channel-f",
+	"gamecom": "63-tiger-gamecom",
+	"apple2": "111-apple-ii"
 }
 
 sc_sysid = {

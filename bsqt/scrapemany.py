@@ -125,11 +125,11 @@ class ScrapeTask(QObject):
 				self.out.emit("Getting Page " + str(current_page))
 				self.bar.emit(0, 1, 0)
 
-				if output_links:
-					print(f"\033[94m[L] https://gamesdb.launchbox-app.com/platforms/games/" + lb_sysid[system] + "|" + str(current_page) + "\033[00m")
+				log_link(lb_page(system, current_page))
 
-				page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + lb_sysid[system] + "|" + str(current_page), timeout=15)
+				page = requests.get(lb_page(system, current_page), timeout=15)
 				log("Page Request Successful", "D", True)
+
 				pagetree = html.fromstring(page.content)
 				page_games = pagetree.xpath('//a[@class="list-item"]')
 
@@ -274,7 +274,7 @@ class ScrapeTask(QObject):
 						self.out.emit("Getting Page " + str(current_page))
 
 						try:
-							page = requests.get("https://gamesdb.launchbox-app.com/platforms/games/" + lb_sysid[system] + "|" + str(current_page), timeout=15)
+							page = requests.get(lb_page(system, current_page), timeout=15)
 							log("Page Request Successful", "D", True)
 						except Exception as e:
 							current_page -= 1
