@@ -43,6 +43,32 @@
   <content_rating type="oars-1.0" />
 
   <releases>
+    <release version="1.4.3" date="2023-05-04">
+	  <description>
+        <p>Bigscraper-qt 1.4.3 provides these fixes:</p>
+        <ul>
+          <li>Launchbox Scraping is updated to match link changes</li>
+          <li>If too many logs are present no crashes occur anymore</li>
+          <li>Accents are not added to exported files</li>
+          <li>Logs are actually logged</li>
+        </ul>
+	  </description>
+	</release>
+    <release version="1.4.2" date="2022-11-15">
+	  <description>
+		<p>Bigscraper-qt 1.4.2 adds these features:</p>
+        <ul>
+          <li>Scraping Statistics</li>
+          <li>Colored Terminal Output</li>
+          <li>(Optional) links in output</li>
+        </ul>
+        <p>Bigscraper-qt 1.4.2 also provides these fixes:</p>
+        <ul>
+          <li>ScreenScraper errors are handled properly</li>
+          <li>Several Crashes</li>
+        </ul>
+	  </description>
+	</release>
     <release version="1.4.1" date="2022-10-22">
 	  <description>
 		<p>Bigscraper-qt 1.4.1 adds these features:</p>

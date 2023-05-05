@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name = "bigscraper-qt",
-	version = "1.4.2",
+	version = "1.4.3",
 	description = "Scrape Game Metadata from Launchbox",
 	keywords = "scraper launchbox metadata",
 	author = "Fr75s",
