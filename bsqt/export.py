@@ -30,7 +30,7 @@ class ExportTask(QObject):
 		# Initialize Variables from data
 		out_folder = self.data[0].replace("file://", "")
 		system_name = self.data[1]
-		system = systems["LaunchBox"][self.data[1]]
+		system = systems[self.options_loc["module"]][self.data[1]]
 		out_format = self.data[2]
 
 		output = []

@@ -45,11 +45,11 @@ To build from source, first clone the repository.
 
 Then, simply run one of the following, depending on which version to build:
 
-	build-appimage:
+	Appimage:
 	$ appimage-builder --skip-tests
 
-	build-flatpak:
-	# flatpak-builder build io.github.fr75s.bigscraper-qt.json --force-clean [...]
+	Flatpak:
+	$ flatpak-builder build io.github.fr75s.bigscraper-qt.json --force-clean [...]
 
 ## Planned Features
 
@@ -58,3 +58,4 @@ A list of new planned features are below.
 - Flathub Release
 - LaunchBox Asynchronous Scraping
 - Clearing Cached data by system
+- UI Refresh
